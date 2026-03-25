@@ -73,7 +73,7 @@
             android:id="@+id/tilUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:visibility="gone"
             app:boxBackgroundMode="outline"
             app:boxBackgroundColor="@color/surface"
@@ -86,6 +86,27 @@
                 android:layout_height="wrap_content"
                 android:hint="Имя пользователя"
                 android:inputType="text"
+                android:textColor="@color/text_primary"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone"
+            app:boxBackgroundMode="outline"
+            app:boxBackgroundColor="@color/surface"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/text_secondary"
+            app:prefixText="+">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Номер телефона"
+                android:inputType="phone"
                 android:textColor="@color/text_primary"/>
         </com.google.android.material.textfield.TextInputLayout>
 

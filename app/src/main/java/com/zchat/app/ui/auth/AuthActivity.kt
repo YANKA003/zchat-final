@@ -47,6 +47,7 @@ class AuthActivity : AppCompatActivity() {
     private fun toggleMode() {
         isLoginMode = !isLoginMode
         binding.tilUsername.visibility = if (isLoginMode) View.GONE else View.VISIBLE
+        binding.tilPhone.visibility = if (isLoginMode) View.GONE else View.VISIBLE
         binding.btnLogin.text = if (isLoginMode) "Войти" else "Назад"
         binding.btnRegister.text = if (isLoginMode) "Регистрация" else "Создать аккаунт"
     }
@@ -85,8 +86,9 @@ class AuthActivity : AppCompatActivity() {
         val email = binding.etEmail.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
         val username = binding.etUsername.text.toString().trim()
+        val phone = binding.etPhone.text.toString().trim()
 
-        if (email.isEmpty() || password.isEmpty() || username.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty() || username.isEmpty() || phone.isEmpty()) {
             Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
             return
         }
@@ -94,11 +96,18 @@ class AuthActivity : AppCompatActivity() {
             Toast.makeText(this, "Пароль минимум 6 символов", Toast.LENGTH_SHORT).show()
             return
         }
+        if (phone.length < 10) {
+            Toast.makeText(this, "Введите корректный номер телефона", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Normalize phone number (remove spaces, dashes, etc.)
+        val normalizedPhone = phone.replace(Regex("[^0-9]"), "")
 
         binding.progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val result = repository?.register(email, password, username)
+                val result = repository?.register(email, password, username, normalizedPhone)
                 binding.progressBar.visibility = View.GONE
                 result?.fold(
                     onSuccess = {

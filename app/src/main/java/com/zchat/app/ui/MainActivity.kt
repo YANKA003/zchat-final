@@ -1,11 +1,17 @@
 package com.zchat.app.ui
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var repository: Repository? = null
     private lateinit var adapter: UsersAdapter
+    private val CONTACTS_PERMISSION_REQUEST = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +44,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             setupUI()
-            loadUsers()
+            checkContactsPermissionAndLoad()
         } catch (e: Exception) {
             Log.e("MainActivity", "Initialization error", e)
             Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
@@ -78,31 +85,120 @@ class MainActivity : AppCompatActivity() {
             adapter = UsersAdapter { user -> openChat(user) }
             binding.rvUsers.layoutManager = LinearLayoutManager(this)
             binding.rvUsers.adapter = adapter
+
+            binding.btnImportContacts.setOnClickListener {
+                checkContactsPermissionAndLoad()
+            }
         } catch (e: Exception) {
             Log.e("MainActivity", "UI setup error", e)
         }
     }
 
-    private fun loadUsers() {
+    private fun checkContactsPermissionAndLoad() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            == PackageManager.PERMISSION_GRANTED) {
+            loadContactUsers()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                CONTACTS_PERMISSION_REQUEST
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CONTACTS_PERMISSION_REQUEST) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                loadContactUsers()
+            } else {
+                Toast.makeText(this, "Разрешение на контакты необходимо для поиска друзей", Toast.LENGTH_LONG).show()
+                binding.emptyState.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun getPhoneContacts(): Set<String> {
+        val phones = mutableSetOf<String>()
+        try {
+            val cursor: Cursor? = contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                null,
+                null,
+                null
+            )
+            cursor?.use {
+                val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                while (it.moveToNext()) {
+                    val number = it.getString(numberIndex)
+                    // Normalize phone number (remove all non-digits)
+                    val normalized = number.replace(Regex("[^0-9]"), "")
+                    if (normalized.isNotEmpty()) {
+                        phones.add(normalized)
+                        // Also add without country code prefix for matching
+                        if (normalized.length > 10) {
+                            phones.add(normalized.takeLast(10))
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error reading contacts", e)
+        }
+        return phones
+    }
+
+    private fun loadContactUsers() {
         binding.progressBar.visibility = View.VISIBLE
+        binding.emptyState.visibility = View.GONE
+
         lifecycleScope.launch {
             try {
+                // Get phone contacts
+                val contactPhones = getPhoneContacts()
+                Log.d("MainActivity", "Found ${contactPhones.size} phone numbers in contacts")
+
+                // Get all users from Firebase
                 val result = repository?.searchUsers("")
                 binding.progressBar.visibility = View.GONE
+
                 result?.fold(
                     onSuccess = { users ->
                         val currentUid = repository?.currentUser?.uid
-                        val filtered = if (currentUid != null) {
-                            users.filter { it.uid != currentUid }
-                        } else {
-                            users
+
+                        // Filter users: show only those in contacts or self
+                        val filtered = users.filter { user ->
+                            if (user.uid == currentUid) {
+                                false // Don't show self
+                            } else {
+                                // Check if user's phone is in contacts
+                                val userPhone = user.phoneNumber.replace(Regex("[^0-9]"), "")
+                                val userPhoneShort = if (userPhone.length > 10) userPhone.takeLast(10) else userPhone
+
+                                contactPhones.contains(userPhone) ||
+                                contactPhones.contains(userPhoneShort) ||
+                                contactPhones.any { it.endsWith(userPhoneShort) || userPhoneShort.endsWith(it.takeLast(10)) }
+                            }
                         }
+
+                        Log.d("MainActivity", "Filtered ${filtered.size} users from contacts")
                         adapter.submitList(filtered)
-                        binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+                        binding.emptyState.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+                        binding.rvUsers.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
+
+                        if (filtered.isEmpty()) {
+                            binding.tvEmpty.text = "Никто из ваших контактов\nещё не использует ZChat"
+                        }
                     },
                     onFailure = {
                         Toast.makeText(this@MainActivity, "Ошибка: ${it.message}", Toast.LENGTH_SHORT).show()
-                        binding.tvEmpty.visibility = View.VISIBLE
+                        binding.emptyState.visibility = View.VISIBLE
                     }
                 )
             } catch (e: Exception) {
@@ -118,6 +214,7 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ChatActivity::class.java)
             intent.putExtra("userId", user.uid)
             intent.putExtra("username", user.username)
+            intent.putExtra("userPhone", user.phoneNumber)
             startActivity(intent)
         } catch (e: Exception) {
             Log.e("MainActivity", "Open chat error", e)

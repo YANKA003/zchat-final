@@ -24,15 +24,39 @@
             android:tint="@color/text_primary"
             android:contentDescription="Назад"/>
 
-        <TextView
-            android:id="@+id/tvTitle"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"/>
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+            <TextView
+                android:id="@+id/tvPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnCall"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_call"
+            android:tint="@color/primary"
+            android:contentDescription="Позвонить"/>
 
     </LinearLayout>
 

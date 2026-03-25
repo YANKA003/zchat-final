@@ -43,6 +43,11 @@ class Repository(context: Context) {
 
     fun logout() = firebaseService.logout()
 
+    suspend fun updateUserProfile(username: String? = null, bio: String? = null, avatarUrl: String? = null) =
+        firebaseService.updateUserProfile(username, bio, avatarUrl)
+
+    suspend fun getUserProfile(uid: String) = firebaseService.getUserProfile(uid)
+
     fun getUsers(currentUserId: String): Flow<List<User>>? = try {
         dao?.getAllUsers(currentUserId)
     } catch (e: Exception) {

@@ -3,6 +3,7 @@ package com.zchat.app.data.remote
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
 import com.zchat.app.data.model.Message
 import com.zchat.app.data.model.User
@@ -23,6 +24,13 @@ class FirebaseService {
             Log.d("FirebaseService", "Registering user: $email")
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: throw Exception("Failed to get user ID")
+
+            // Update display name in Firebase Auth
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(username)
+                .build()
+            result.user?.updateProfile(profileUpdates)?.await()
+
             val user = User(
                 uid = uid,
                 email = email,
@@ -67,6 +75,49 @@ class FirebaseService {
             Log.d("FirebaseService", "User logged out")
         } catch (e: Exception) {
             Log.e("FirebaseService", "Logout failed", e)
+        }
+    }
+
+    suspend fun updateUserProfile(
+        username: String? = null,
+        bio: String? = null,
+        avatarUrl: String? = null
+    ): Result<Unit> {
+        return try {
+            val uid = currentUser?.uid ?: throw Exception("Not logged in")
+            val updates = mutableMapOf<String, Any>()
+
+            username?.let {
+                updates["username"] = it
+                // Also update Firebase Auth display name
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(it)
+                    .build()
+                currentUser?.updateProfile(profileUpdates)?.await()
+            }
+            bio?.let { updates["bio"] = it }
+            avatarUrl?.let { updates["avatarUrl"] = it }
+
+            if (updates.isNotEmpty()) {
+                database.child("users").child(uid).updateChildren(updates).await()
+            }
+
+            Log.d("FirebaseService", "Profile updated successfully")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("FirebaseService", "Failed to update profile", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserProfile(uid: String): Result<User> {
+        return try {
+            val snapshot = database.child("users").child(uid).get().await()
+            val user = snapshot.getValue(User::class.java) ?: throw Exception("User not found")
+            Result.success(user)
+        } catch (e: Exception) {
+            Log.e("FirebaseService", "Failed to get user profile", e)
+            Result.failure(e)
         }
     }
 

@@ -26,6 +26,12 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean("app_lock_enabled", false)
         set(value) = prefs.edit().putBoolean("app_lock_enabled", value).apply()
 
+    fun setFingerprintEnabled(enabled: Boolean) {
+        appLockEnabled = enabled
+    }
+
+    fun isFingerprintEnabled(): Boolean = appLockEnabled
+
     var notificationSound: String
         get() = prefs.getString("notification_sound", "default") ?: "default"
         set(value) = prefs.edit().putString("notification_sound", value).apply()
