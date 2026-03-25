@@ -11,8 +11,12 @@ import com.zchat.app.data.model.CallSignal
 import com.zchat.app.data.model.Message
 import com.zchat.app.data.model.User
 import com.zchat.app.data.remote.FirebaseService
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
@@ -21,8 +25,10 @@ class Repository(context: Context) {
     private var database: AppDatabase? = null
     private var dao: ChatDao? = null
     val preferencesManager: PreferencesManager
+    private val scope = CoroutineScope(Dispatchers.IO)
 
-    val currentUser get() = firebaseService.currentUser
+    val currentUser: FirebaseUser?
+        get() = firebaseService.currentUser
 
     init {
         try {
@@ -38,17 +44,15 @@ class Repository(context: Context) {
         }
         preferencesManager = PreferencesManager(context)
 
-        // Get and save FCM token
-        updateFcmToken()
-    }
-
-    private fun updateFcmToken() {
-        try {
-            val token = FirebaseMessaging.getInstance().token.await()
-            firebaseService.updateFcmToken(token)
-            Log.d("Repository", "FCM token saved")
-        } catch (e: Exception) {
-            Log.e("Repository", "Failed to get FCM token", e)
+        // Get FCM token asynchronously
+        scope.launch {
+            try {
+                val token = FirebaseMessaging.getInstance().token.await()
+                firebaseService.updateFcmToken(token)
+                Log.d("Repository", "FCM token saved")
+            } catch (e: Exception) {
+                Log.e("Repository", "Failed to get FCM token", e)
+            }
         }
     }
 
@@ -60,7 +64,14 @@ class Repository(context: Context) {
     suspend fun login(email: String, password: String): Result<User> {
         val result = firebaseService.login(email, password)
         if (result.isSuccess) {
-            updateFcmToken()
+            scope.launch {
+                try {
+                    val token = FirebaseMessaging.getInstance().token.await()
+                    firebaseService.updateFcmToken(token)
+                } catch (e: Exception) {
+                    Log.e("Repository", "Failed to update FCM token on login", e)
+                }
+            }
         }
         return result
     }
@@ -80,20 +91,20 @@ class Repository(context: Context) {
 
     suspend fun sendMessage(content: String, receiverId: String): Result<Message> {
         val senderId = currentUser?.uid ?: return Result.failure(Exception("Not logged in"))
+        val messageId = UUID.randomUUID().toString()
         val message = Message(
-            id = UUID.randomUUID().toString(),
+            id = messageId,
             senderId = senderId,
             receiverId = receiverId,
             content = content,
             timestamp = System.currentTimeMillis()
         )
 
-        return try {
-            firebaseService.sendMessage(message)
+        val result = firebaseService.sendMessage(message)
+        return if (result.isSuccess) {
             Result.success(message)
-        } catch (e: Exception) {
-            Log.e("Repository", "Failed to send message", e)
-            Result.failure(e)
+        } else {
+            Result.failure(result.exceptionOrNull() ?: Exception("Failed to send message"))
         }
     }
 

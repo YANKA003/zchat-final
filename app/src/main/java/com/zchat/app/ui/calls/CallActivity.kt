@@ -3,6 +3,7 @@ package com.zchat.app.ui.calls
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -11,14 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.zchat.app.R
 import com.zchat.app.data.Repository
 import com.zchat.app.data.model.Call
-import com.zchat.app.data.model.CallSignal
 import com.zchat.app.databinding.ActivityCallBinding
-import com.zchat.app.services.CallService
-import io.getstream.webrtc.android.ui.VideoView
 import kotlinx.coroutines.launch
-import org.webrtc.*
 import java.util.*
 
 class CallActivity : AppCompatActivity() {
@@ -30,17 +28,11 @@ class CallActivity : AppCompatActivity() {
     private var callerName: String? = null
     private var isCaller: Boolean = false
     private var otherUserId: String? = null
-    private var currentUserId: String? = null
-
-    private var peerConnectionFactory: PeerConnectionFactory? = null
-    private var peerConnection: PeerConnection? = null
-    private var localVideoTrack: VideoTrack? = null
-    private var localAudioTrack: AudioTrack? = null
+    private var otherUserPhone: String? = null
     private var isVideoCall = false
     private var isMuted = false
-    private var isCameraOff = false
 
-    private val PERMISSIONS_REQUEST = 200
+    private val CALL_PERMISSION_REQUEST = 102
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,27 +40,21 @@ class CallActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         repository = Repository(applicationContext)
-        currentUserId = repository?.currentUser?.uid
 
         callId = intent.getStringExtra("callId")
-        callerName = intent.getStringExtra("callerName")
+        callerName = intent.getStringExtra("callerName") ?: intent.getStringExtra("username")
         isCaller = intent.getBooleanExtra("isCaller", false)
-        otherUserId = intent.getStringExtra("otherUserId")
+        otherUserId = intent.getStringExtra("otherUserId") ?: intent.getStringExtra("callerId")
+        otherUserPhone = intent.getStringExtra("userPhone")
         isVideoCall = intent.getBooleanExtra("isVideo", false)
 
         if (!isCaller) {
-            // Incoming call
-            otherUserId = intent.getStringExtra("callerId")
             showIncomingCallUI()
         } else {
-            // Outgoing call
-            startCall()
+            startOutgoingCall()
         }
 
         setupButtons()
-
-        // Start foreground service
-        startCallService()
     }
 
     private fun showIncomingCallUI() {
@@ -82,6 +68,7 @@ class CallActivity : AppCompatActivity() {
         binding.llIncomingCall.visibility = View.GONE
         binding.llActiveCall.visibility = View.VISIBLE
         binding.tvCallerName.text = callerName ?: "Неизвестный"
+        binding.tvCallStatus.text = if (isVideoCall) "Видеозвонок" else "Голосовой звонок"
     }
 
     private fun setupButtons() {
@@ -105,38 +92,8 @@ class CallActivity : AppCompatActivity() {
             toggleSpeaker()
         }
 
-        binding.btnVideo.setOnClickListener {
-            toggleVideo()
-        }
-    }
-
-    private fun checkPermissions(): Boolean {
-        val permissions = mutableListOf(
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.CAMERA
-        )
-
-        val missing = permissions.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-
-        if (missing.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, missing.toTypedArray(), PERMISSIONS_REQUEST)
-            return false
-        }
-        return true
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSIONS_REQUEST) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                initializeWebRTC()
-            } else {
-                Toast.makeText(this, "Нужны разрешения для звонка", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
+        // Video button - for future implementation
+        binding.btnVideo.visibility = View.GONE
     }
 
     private fun acceptCall() {
@@ -146,8 +103,96 @@ class CallActivity : AppCompatActivity() {
             }
         }
         showActiveCallUI()
-        if (checkPermissions()) {
-            initializeWebRTC()
+        
+        // For now, initiate a regular phone call
+        // In the future, this would connect WebRTC
+        showCallOptions()
+    }
+
+    private fun showCallOptions() {
+        if (!otherUserPhone.isNullOrEmpty()) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Способ связи")
+                .setMessage("VoIP звонки в разработке. Использовать обычный звонок?")
+                .setPositiveButton("Позвонить") { _, _ ->
+                    makePhoneCall()
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
+    }
+
+    private fun startOutgoingCall() {
+        showActiveCallUI()
+        binding.tvCallStatus.text = "Вызов..."
+
+        lifecycleScope.launch {
+            try {
+                val id = callId ?: UUID.randomUUID().toString()
+                callId = id
+
+                val call = Call(
+                    id = id,
+                    callerId = repository?.currentUser?.uid ?: "",
+                    callerName = repository?.currentUser?.displayName ?: "Пользователь",
+                    receiverId = otherUserId ?: "",
+                    receiverName = callerName ?: "",
+                    timestamp = System.currentTimeMillis(),
+                    type = if (isVideoCall) "VIDEO" else "VOICE",
+                    status = "RINGING"
+                )
+
+                repository?.initiateCall(call)
+
+                // Show call options after a delay
+                binding.tvCallStatus.text = "Соединение..."
+                binding.root.postDelayed({
+                    showCallOptions()
+                }, 2000)
+
+            } catch (e: Exception) {
+                Log.e("CallActivity", "Failed to start call", e)
+                Toast.makeText(this@CallActivity, "Ошибка звонка", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
+
+    private fun makePhoneCall() {
+        if (otherUserPhone.isNullOrEmpty()) {
+            Toast.makeText(this, "Номер телефона недоступен", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CALL_PHONE),
+                CALL_PERMISSION_REQUEST
+            )
+            return
+        }
+
+        try {
+            val phoneDigits = otherUserPhone!!.replace(Regex("[^0-9]"), "")
+            val callIntent = Intent(Intent.ACTION_CALL)
+            callIntent.data = Uri.parse("tel:+$phoneDigits")
+            startActivity(callIntent)
+        } catch (e: Exception) {
+            Log.e("CallActivity", "Call error", e)
+            Toast.makeText(this, "Не удалось совершить звонок", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CALL_PERMISSION_REQUEST) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                makePhoneCall()
+            } else {
+                Toast.makeText(this, "Разрешение на звонки необходимо", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -160,312 +205,24 @@ class CallActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun startCall() {
-        showActiveCallUI()
-        binding.tvCallStatus.text = "Вызов..."
-
-        lifecycleScope.launch {
-            try {
-                val id = UUID.randomUUID().toString()
-                callId = id
-
-                val call = Call(
-                    id = id,
-                    callerId = currentUserId ?: "",
-                    callerName = repository?.currentUser?.displayName ?: "Пользователь",
-                    receiverId = otherUserId ?: "",
-                    receiverName = callerName ?: "",
-                    timestamp = System.currentTimeMillis(),
-                    type = if (isVideoCall) "VIDEO" else "VOICE",
-                    status = "RINGING"
-                )
-
-                repository?.initiateCall(call)
-
-                // Listen for answer
-                observeCallSignals()
-
-                if (checkPermissions()) {
-                    initializeWebRTC()
-                }
-            } catch (e: Exception) {
-                Log.e("CallActivity", "Failed to start call", e)
-                Toast.makeText(this@CallActivity, "Ошибка звонка", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
-    }
-
-    private fun initializeWebRTC() {
-        try {
-            // Initialize PeerConnectionFactory
-            val options = PeerConnectionFactory.InitializationOptions.builder(this)
-                .setEnableInternalTracerCapture(true)
-                .setEnableVideoHwAcceleration(true)
-                .createInitializationOptions()
-            PeerConnectionFactory.initialize(options)
-
-            peerConnectionFactory = PeerConnectionFactory.builder()
-                .setVideoDecoderFactory(DefaultVideoDecoderFactory(binding.localView.eglBaseContext))
-                .setVideoEncoderFactory(DefaultVideoEncoderFactory(binding.localView.eglBaseContext, true, true))
-                .createPeerConnectionFactory()
-
-            // Create peer connection
-            val iceServers = listOf(
-                PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer(),
-                PeerConnection.IceServer.builder("stun:stun1.l.google.com:19302").createIceServer()
-            )
-
-            val rtcConfig = PeerConnection.RTCConfiguration(iceServers)
-
-            peerConnection = peerConnectionFactory?.createPeerConnection(rtcConfig, object : PeerConnection.Observer {
-                override fun onSignalingChange(state: PeerConnection.SignalingState?) {}
-                override fun onIceConnectionChange(state: PeerConnection.IceConnectionState?) {
-                    runOnUiThread {
-                        when (state) {
-                            PeerConnection.IceConnectionState.CONNECTED -> {
-                                binding.tvCallStatus.text = "Соединено"
-                            }
-                            PeerConnection.IceConnectionState.DISCONNECTED,
-                            PeerConnection.IceConnectionState.CLOSED -> {
-                                endCall()
-                            }
-                            else -> {}
-                        }
-                    }
-                }
-                override fun onIceConnectionReceivingChange(receiving: Boolean) {}
-                override fun onIceGatheringChange(state: PeerConnection.IceGatheringState?) {}
-                override fun onIceCandidate(candidate: IceCandidate?) {
-                    candidate?.let {
-                        sendIceCandidate(it)
-                    }
-                }
-                override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) {}
-                override fun onAddStream(stream: MediaStream?) {
-                    stream?.videoTracks?.firstOrNull()?.addSink(binding.remoteView)
-                }
-                override fun onRemoveStream(stream: MediaStream?) {}
-                override fun onDataChannel(channel: DataChannel?) {}
-                override fun onRenegotiationNeeded() {
-                    if (isCaller) {
-                        createOffer()
-                    }
-                }
-                override fun onAddTrack(receiver: RtpReceiver?, streams: Array<out MediaStream>?) {}
-            })
-
-            // Add audio track
-            val audioSource = peerConnectionFactory?.createAudioSource(MediaConstraints())
-            localAudioTrack = peerConnectionFactory?.createAudioTrack("audio", audioSource)
-            peerConnection?.addTrack(localAudioTrack)
-
-            // Add video track if video call
-            if (isVideoCall) {
-                val videoCapturer = createVideoCapturer()
-                val videoSource = peerConnectionFactory?.createVideoSource(videoCapturer?.isScreencast ?: false)
-                videoCapturer?.initialize(
-                    SurfaceTextureHelper.create("VideoThread", binding.localView.eglBaseContext),
-                    this, videoSource?.capturerObserver
-                )
-                videoCapturer?.startCapture(640, 480, 30)
-
-                localVideoTrack = peerConnectionFactory?.createVideoTrack("video", videoSource)
-                localVideoTrack?.addSink(binding.localView)
-                peerConnection?.addTrack(localVideoTrack)
-            }
-
-        } catch (e: Exception) {
-            Log.e("CallActivity", "Failed to initialize WebRTC", e)
-        }
-    }
-
-    private fun createVideoCapturer(): VideoCapturer? {
-        return try {
-            val enumerator = Camera2Enumerator(this)
-            enumerator.deviceNames.firstOrNull { enumerator.isFrontFacing(it) }?.let {
-                enumerator.createCapturer(it, null)
-            }
-        } catch (e: Exception) {
-            Log.e("CallActivity", "Failed to create video capturer", e)
-            null
-        }
-    }
-
-    private fun createOffer() {
-        val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", isVideoCall.toString()))
-        }
-
-        peerConnection?.createOffer(object : SdpObserver {
-            override fun onCreateSuccess(sdp: SessionDescription?) {
-                peerConnection?.setLocalDescription(object : SdpObserver {
-                    override fun onCreateSuccess(p0: SessionDescription?) {}
-                    override fun onSetSuccess() {
-                        sendSdp(sdp)
-                    }
-                    override fun onCreateFailure(p0: String?) {}
-                    override fun onSetFailure(p0: String?) {}
-                }, sdp)
-            }
-            override fun onSetSuccess() {}
-            override fun onCreateFailure(error: String?) {
-                Log.e("CallActivity", "Create offer failed: $error")
-            }
-            override fun onSetFailure(error: String?) {}
-        }, constraints)
-    }
-
-    private fun sendSdp(sdp: SessionDescription?) {
-        lifecycleScope.launch {
-            val signal = CallSignal(
-                id = "${callId}_${System.currentTimeMillis()}",
-                callerId = currentUserId ?: "",
-                receiverId = otherUserId ?: "",
-                type = sdp?.type?.canonicalForm() ?: "offer",
-                sdp = sdp?.description ?: "",
-                timestamp = System.currentTimeMillis()
-            )
-            repository?.sendCallSignal(signal)
-        }
-    }
-
-    private fun sendIceCandidate(candidate: IceCandidate) {
-        lifecycleScope.launch {
-            val signal = CallSignal(
-                id = "${callId}_ice_${System.currentTimeMillis()}",
-                callerId = currentUserId ?: "",
-                receiverId = otherUserId ?: "",
-                type = "ice-candidate",
-                iceCandidates = "${candidate.sdpMid}:${candidate.sdpMLineIndex}:${candidate.sdp}",
-                timestamp = System.currentTimeMillis()
-            )
-            repository?.sendCallSignal(signal)
-        }
-    }
-
-    private fun observeCallSignals() {
-        lifecycleScope.launch {
-            callId?.let { id ->
-                repository?.observeCallSignals(id)?.collect { signal ->
-                    handleSignal(signal)
-                }
-            }
-        }
-    }
-
-    private fun handleSignal(signal: CallSignal) {
-        when (signal.type) {
-            "offer" -> {
-                val sdp = SessionDescription(SessionDescription.Type.OFFER, signal.sdp)
-                peerConnection?.setRemoteDescription(object : SdpObserver {
-                    override fun onCreateSuccess(p0: SessionDescription?) {}
-                    override fun onSetSuccess() {
-                        createAnswer()
-                    }
-                    override fun onCreateFailure(p0: String?) {}
-                    override fun onSetFailure(p0: String?) {}
-                }, sdp)
-            }
-            "answer" -> {
-                val sdp = SessionDescription(SessionDescription.Type.ANSWER, signal.sdp)
-                peerConnection?.setRemoteDescription(object : SdpObserver {
-                    override fun onCreateSuccess(p0: SessionDescription?) {}
-                    override fun onSetSuccess() {}
-                    override fun onCreateFailure(p0: String?) {}
-                    override fun onSetFailure(p0: String?) {}
-                }, sdp)
-            }
-            "ice-candidate" -> {
-                val parts = signal.iceCandidates.split(":")
-                if (parts.size >= 3) {
-                    val candidate = IceCandidate(parts[0], parts[1].toInt(), parts.drop(2).joinToString(":"))
-                    peerConnection?.addIceCandidate(candidate)
-                }
-            }
-        }
-    }
-
-    private fun createAnswer() {
-        val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", isVideoCall.toString()))
-        }
-
-        peerConnection?.createAnswer(object : SdpObserver {
-            override fun onCreateSuccess(sdp: SessionDescription?) {
-                peerConnection?.setLocalDescription(object : SdpObserver {
-                    override fun onCreateSuccess(p0: SessionDescription?) {}
-                    override fun onSetSuccess() {
-                        sendSdp(sdp)
-                    }
-                    override fun onCreateFailure(p0: String?) {}
-                    override fun onSetFailure(p0: String?) {}
-                }, sdp)
-            }
-            override fun onSetSuccess() {}
-            override fun onCreateFailure(error: String?) {}
-            override fun onSetFailure(error: String?) {}
-        }, constraints)
-    }
-
-    private fun toggleMute() {
-        isMuted = !isMuted
-        localAudioTrack?.setEnabled(!isMuted)
-        binding.btnMute.setImageResource(
-            if (isMuted) android.R.drawable.ic_btn_speak_now
-            else android.R.drawable.ic_btn_speak_now
-        )
-    }
-
-    private fun toggleSpeaker() {
-        // Toggle speakerphone
-        val audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
-        audioManager.mode = android.media.AudioManager.MODE_IN_CALL
-        audioManager.isSpeakerphoneOn = !audioManager.isSpeakerphoneOn
-    }
-
-    private fun toggleVideo() {
-        isVideoCall = !isVideoCall
-        if (isVideoCall) {
-            binding.localView.visibility = View.VISIBLE
-            binding.remoteView.visibility = View.VISIBLE
-        } else {
-            binding.localView.visibility = View.GONE
-            binding.remoteView.visibility = View.GONE
-        }
-    }
-
     private fun endCall() {
         lifecycleScope.launch {
             callId?.let { id ->
                 repository?.updateCallStatus(id, "ENDED")
             }
         }
-        cleanup()
         finish()
     }
 
-    private fun cleanup() {
-        localVideoTrack?.dispose()
-        localAudioTrack?.dispose()
-        peerConnection?.close()
-        peerConnectionFactory?.dispose()
-        stopService(Intent(this, CallService::class.java))
+    private fun toggleMute() {
+        isMuted = !isMuted
+        Toast.makeText(this, if (isMuted) "Микрофон выключен" else "Микрофон включён", Toast.LENGTH_SHORT).show()
     }
 
-    private fun startCallService() {
-        val intent = Intent(this, CallService::class.java).apply {
-            putExtra(CallService.EXTRA_CALL_ID, callId)
-            putExtra(CallService.EXTRA_CALLER_NAME, callerName)
-            putExtra(CallService.EXTRA_IS_CALLER, isCaller)
-        }
-        startService(intent)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cleanup()
+    private fun toggleSpeaker() {
+        val audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
+        audioManager.mode = android.media.AudioManager.MODE_IN_CALL
+        audioManager.isSpeakerphoneOn = !audioManager.isSpeakerphoneOn
+        Toast.makeText(this, if (audioManager.isSpeakerphoneOn) "Динамик включён" else "Динамик выключен", Toast.LENGTH_SHORT).show()
     }
 }
