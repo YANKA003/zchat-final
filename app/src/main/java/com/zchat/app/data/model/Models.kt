@@ -5,56 +5,65 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "users")
 data class User(
-    @PrimaryKey val uid: String,
-    val email: String = "",
-    val username: String = "",
-    val phoneNumber: String = "",
-    val avatarUrl: String = "",
-    val bio: String = "",
-    val isOnline: Boolean = false,
-    val lastSeen: Long = 0,
-    val isPremium: Boolean = false
-)
+    @PrimaryKey var uid: String = "",
+    var email: String = "",
+    var username: String = "",
+    var phoneNumber: String = "",
+    var avatarUrl: String = "",
+    var bio: String = "",
+    var isOnline: Boolean = false,
+    var lastSeen: Long = 0,
+    var isPremium: Boolean = false
+) {
+    // No-argument constructor required for Firebase
+    constructor() : this("", "", "", "", "", "", false, 0, false)
+}
 
 @Entity(tableName = "messages")
 data class Message(
-    @PrimaryKey val id: String,
-    val senderId: String,
-    val receiverId: String,
-    val content: String,
-    val timestamp: Long,
-    val isRead: Boolean = false,
-    val isSynced: Boolean = false
-)
+    @PrimaryKey var id: String = "",
+    var senderId: String = "",
+    var receiverId: String = "",
+    var content: String = "",
+    var timestamp: Long = 0,
+    var isRead: Boolean = false,
+    var isSynced: Boolean = false
+) {
+    // No-argument constructor required for Firebase
+    constructor() : this("", "", "", "", 0, false, false)
+}
 
-// Add missing fields to Message
 data class MessageWithSync(
-    val id: String,
-    val senderId: String,
-    val receiverId: String,
-    val content: String,
-    val timestamp: Long,
-    val isRead: Boolean = false,
-    val isSynced: Boolean = false
+    var id: String = "",
+    var senderId: String = "",
+    var receiverId: String = "",
+    var content: String = "",
+    var timestamp: Long = 0,
+    var isRead: Boolean = false,
+    var isSynced: Boolean = false
 )
 
 @Entity(tableName = "calls")
 data class Call(
-    @PrimaryKey val id: String,
-    val callerId: String,
-    val receiverId: String,
-    val timestamp: Long,
-    val duration: Long = 0,
-    val type: String = "VOICE",
-    val isRecorded: Boolean = false,
-    val recordingPath: String = ""
-)
+    @PrimaryKey var id: String = "",
+    var callerId: String = "",
+    var receiverId: String = "",
+    var timestamp: Long = 0,
+    var duration: Long = 0,
+    var type: String = "VOICE",
+    var isRecorded: Boolean = false,
+    var recordingPath: String = ""
+) {
+    constructor() : this("", "", "", 0, 0, "VOICE", false, "")
+}
 
 @Entity(tableName = "chat_folders")
 data class ChatFolder(
-    @PrimaryKey val id: String,
-    val name: String,
-    val icon: String = "folder",
-    val includedChats: String = "",
-    val order: Int = 0
-)
+    @PrimaryKey var id: String = "",
+    var name: String = "",
+    var icon: String = "folder",
+    var includedChats: String = "",
+    var order: Int = 0
+) {
+    constructor() : this("", "", "folder", "", 0)
+}
