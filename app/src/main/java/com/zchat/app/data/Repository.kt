@@ -6,10 +6,14 @@ import androidx.room.Room
 import com.zchat.app.data.local.AppDatabase
 import com.zchat.app.data.local.ChatDao
 import com.zchat.app.data.local.PreferencesManager
+import com.zchat.app.data.model.Call
+import com.zchat.app.data.model.CallSignal
 import com.zchat.app.data.model.Message
 import com.zchat.app.data.model.User
 import com.zchat.app.data.remote.FirebaseService
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 class Repository(context: Context) {
@@ -33,29 +37,95 @@ class Repository(context: Context) {
             Log.e("Repository", "Failed to initialize database", e)
         }
         preferencesManager = PreferencesManager(context)
+
+        // Get and save FCM token
+        updateFcmToken()
     }
+
+    private fun updateFcmToken() {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            firebaseService.updateFcmToken(token)
+            Log.d("Repository", "FCM token saved")
+        } catch (e: Exception) {
+            Log.e("Repository", "Failed to get FCM token", e)
+        }
+    }
+
+    // ============ AUTH ============
 
     suspend fun register(email: String, password: String, username: String, phone: String = "") =
         firebaseService.register(email, password, username, phone)
 
-    suspend fun login(email: String, password: String) =
-        firebaseService.login(email, password)
+    suspend fun login(email: String, password: String): Result<User> {
+        val result = firebaseService.login(email, password)
+        if (result.isSuccess) {
+            updateFcmToken()
+        }
+        return result
+    }
 
     fun logout() = firebaseService.logout()
+
+    // ============ USER PROFILE ============
 
     suspend fun updateUserProfile(username: String? = null, bio: String? = null, avatarUrl: String? = null) =
         firebaseService.updateUserProfile(username, bio, avatarUrl)
 
     suspend fun getUserProfile(uid: String) = firebaseService.getUserProfile(uid)
 
-    fun getUsers(currentUserId: String): Flow<List<User>>? = try {
-        dao?.getAllUsers(currentUserId)
-    } catch (e: Exception) {
-        Log.e("Repository", "Failed to get users", e)
-        null
+    fun observeUserStatus(uid: String): Flow<User> = firebaseService.observeUserStatus(uid)
+
+    // ============ MESSAGES ============
+
+    suspend fun sendMessage(content: String, receiverId: String): Result<Message> {
+        val senderId = currentUser?.uid ?: return Result.failure(Exception("Not logged in"))
+        val message = Message(
+            id = UUID.randomUUID().toString(),
+            senderId = senderId,
+            receiverId = receiverId,
+            content = content,
+            timestamp = System.currentTimeMillis()
+        )
+
+        return try {
+            firebaseService.sendMessage(message)
+            Result.success(message)
+        } catch (e: Exception) {
+            Log.e("Repository", "Failed to send message", e)
+            Result.failure(e)
+        }
     }
 
+    fun observeMessages(currentUserId: String, otherUserId: String): Flow<List<Message>> =
+        firebaseService.observeMessages(currentUserId, otherUserId)
+
+    suspend fun editMessage(messageId: String, currentUserId: String, otherUserId: String, newContent: String) =
+        firebaseService.editMessage(messageId, currentUserId, otherUserId, newContent)
+
+    suspend fun deleteMessage(messageId: String, currentUserId: String, otherUserId: String) =
+        firebaseService.deleteMessage(messageId, currentUserId, otherUserId)
+
+    suspend fun markMessagesAsRead(currentUserId: String, otherUserId: String) =
+        firebaseService.markMessagesAsRead(currentUserId, otherUserId)
+
+    // ============ USERS ============
+
     suspend fun searchUsers(query: String) = firebaseService.searchUsers(query)
+
+    // ============ CALLS ============
+
+    suspend fun initiateCall(call: Call) = firebaseService.initiateCall(call)
+
+    suspend fun sendCallSignal(signal: CallSignal) = firebaseService.sendCallSignal(signal)
+
+    fun observeCallSignals(callId: String): Flow<CallSignal> = firebaseService.observeCallSignals(callId)
+
+    fun observeIncomingCalls(userId: String): Flow<Call> = firebaseService.observeIncomingCalls(userId)
+
+    suspend fun updateCallStatus(callId: String, status: String) = firebaseService.updateCallStatus(callId, status)
+
+    // ============ LOCAL DATABASE (for offline) ============
 
     fun getMessages(userId: String, currentUserId: String): Flow<List<Message>>? = try {
         dao?.getMessagesWithUser(userId, currentUserId)
@@ -64,20 +134,10 @@ class Repository(context: Context) {
         null
     }
 
-    suspend fun sendMessage(content: String, receiverId: String) {
-        val senderId = currentUser?.uid ?: return
-        val message = Message(
-            id = UUID.randomUUID().toString(),
-            senderId = senderId,
-            receiverId = receiverId,
-            content = content,
-            timestamp = System.currentTimeMillis()
-        )
-        try {
-            dao?.insertMessage(message)
-            firebaseService.sendMessage(message)
-        } catch (e: Exception) {
-            Log.e("Repository", "Failed to send message", e)
-        }
+    fun getUsers(currentUserId: String): Flow<List<User>>? = try {
+        dao?.getAllUsers(currentUserId)
+    } catch (e: Exception) {
+        Log.e("Repository", "Failed to get users", e)
+        null
     }
 }

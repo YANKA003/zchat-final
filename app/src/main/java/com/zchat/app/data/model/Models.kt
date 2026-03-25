@@ -13,10 +13,10 @@ data class User(
     var bio: String = "",
     var isOnline: Boolean = false,
     var lastSeen: Long = 0,
-    var isPremium: Boolean = false
+    var isPremium: Boolean = false,
+    var fcmToken: String = ""
 ) {
-    // No-argument constructor required for Firebase
-    constructor() : this("", "", "", "", "", "", false, 0, false)
+    constructor() : this("", "", "", "", "", "", false, 0, false, "")
 }
 
 @Entity(tableName = "messages")
@@ -27,34 +27,29 @@ data class Message(
     var content: String = "",
     var timestamp: Long = 0,
     var isRead: Boolean = false,
-    var isSynced: Boolean = false
+    var isSynced: Boolean = false,
+    var isEdited: Boolean = false,
+    var isDeleted: Boolean = false,
+    var editedAt: Long = 0
 ) {
-    // No-argument constructor required for Firebase
-    constructor() : this("", "", "", "", 0, false, false)
+    constructor() : this("", "", "", "", 0, false, false, false, false, 0)
 }
-
-data class MessageWithSync(
-    var id: String = "",
-    var senderId: String = "",
-    var receiverId: String = "",
-    var content: String = "",
-    var timestamp: Long = 0,
-    var isRead: Boolean = false,
-    var isSynced: Boolean = false
-)
 
 @Entity(tableName = "calls")
 data class Call(
     @PrimaryKey var id: String = "",
     var callerId: String = "",
+    var callerName: String = "",
     var receiverId: String = "",
+    var receiverName: String = "",
     var timestamp: Long = 0,
     var duration: Long = 0,
     var type: String = "VOICE",
+    var status: String = "MISSED",
     var isRecorded: Boolean = false,
     var recordingPath: String = ""
 ) {
-    constructor() : this("", "", "", 0, 0, "VOICE", false, "")
+    constructor() : this("", "", "", "", "", 0, 0, "VOICE", "MISSED", false, "")
 }
 
 @Entity(tableName = "chat_folders")
@@ -66,4 +61,17 @@ data class ChatFolder(
     var order: Int = 0
 ) {
     constructor() : this("", "", "folder", "", 0)
+}
+
+// For WebRTC signaling
+data class CallSignal(
+    var id: String = "",
+    var callerId: String = "",
+    var receiverId: String = "",
+    var type: String = "", // "offer", "answer", "ice-candidate"
+    var sdp: String = "",
+    var iceCandidates: String = "",
+    var timestamp: Long = 0
+) {
+    constructor() : this("", "", "", "", "", "", 0)
 }

@@ -1,6 +1,7 @@
 package com.zchat.app.ui.chats
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -10,8 +11,10 @@ import com.zchat.app.databinding.ItemMessageBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MessagesAdapter(private val currentUserId: String) :
-    ListAdapter<Message, MessagesAdapter.MessageViewHolder>(MessageDiffCallback()) {
+class MessagesAdapter(
+    private val currentUserId: String,
+    private val onMessageLongClick: (Message, View) -> Unit
+) : ListAdapter<Message, MessagesAdapter.MessageViewHolder>(MessageDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         return MessageViewHolder(
@@ -30,9 +33,19 @@ class MessagesAdapter(private val currentUserId: String) :
 
         fun bind(message: Message) {
             val isMine = message.senderId == currentUserId
-            binding.tvMessage.text = message.content
-            binding.tvTime.text = timeFormat.format(Date(message.timestamp))
 
+            // Message content
+            binding.tvMessage.text = message.content
+
+            // Time
+            val timeText = timeFormat.format(Date(message.timestamp))
+            binding.tvTime.text = if (message.isEdited) {
+                "$timeText (ред.)"
+            } else {
+                timeText
+            }
+
+            // Layout params
             val params = binding.root.layoutParams as ViewGroup.MarginLayoutParams
             if (isMine) {
                 binding.root.setBackgroundResource(com.zchat.app.R.drawable.bg_message_sent)
@@ -44,6 +57,12 @@ class MessagesAdapter(private val currentUserId: String) :
                 params.marginEnd = 100
             }
             binding.root.layoutParams = params
+
+            // Long click for context menu
+            binding.root.setOnLongClickListener { view ->
+                onMessageLongClick(message, view)
+                true
+            }
         }
     }
 

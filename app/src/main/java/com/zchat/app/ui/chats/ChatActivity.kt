@@ -1,30 +1,37 @@
 package com.zchat.app.ui.chats
 
-import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.util.Log
+import android.view.ContextMenu
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.zchat.app.R
 import com.zchat.app.data.Repository
+import com.zchat.app.data.model.Message
+import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ActivityChatBinding
+import com.zchat.app.ui.calls.CallActivity
 import kotlinx.coroutines.launch
 
 class ChatActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityChatBinding
     private var repository: Repository? = null
     private lateinit var adapter: MessagesAdapter
     private var otherUserId: String? = null
     private var currentUserId: String? = null
     private var userPhone: String? = null
-    private val CALL_PERMISSION_REQUEST = 101
+    private var username: String? = null
+    private var selectedMessage: Message? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,19 +40,23 @@ class ChatActivity : AppCompatActivity() {
             setContentView(binding.root)
 
             otherUserId = intent.getStringExtra("userId")
-            val username = intent.getStringExtra("username") ?: "Чат"
+            username = intent.getStringExtra("username")
             userPhone = intent.getStringExtra("userPhone")
 
             binding.tvTitle.text = username
 
-            // Show phone number if available
             if (!userPhone.isNullOrEmpty()) {
                 binding.tvPhone.text = formatPhoneNumber(userPhone!!)
                 binding.tvPhone.visibility = View.VISIBLE
             }
 
             binding.btnBack.setOnClickListener { finish() }
-            binding.btnCall.setOnClickListener { makeCall() }
+
+            // Video call button
+            binding.btnVideoCall.setOnClickListener { startCall(isVideo = true) }
+
+            // Voice call button
+            binding.btnCall.setOnClickListener { startCall(isVideo = false) }
 
             repository = Repository(applicationContext)
             currentUserId = repository?.currentUser?.uid
@@ -56,7 +67,11 @@ class ChatActivity : AppCompatActivity() {
                 return
             }
 
-            adapter = MessagesAdapter(currentUserId!!)
+            adapter = MessagesAdapter(currentUserId!!) { message, view ->
+                selectedMessage = message
+                registerForContextMenu(view)
+                openContextMenu(view)
+            }
             binding.rvMessages.layoutManager = LinearLayoutManager(this).apply {
                 stackFromEnd = true
             }
@@ -64,7 +79,9 @@ class ChatActivity : AppCompatActivity() {
 
             binding.btnSend.setOnClickListener { sendMessage() }
 
-            loadMessages()
+            loadMessagesRealtime()
+            observeUserStatus()
+            markMessagesAsRead()
         } catch (e: Exception) {
             Log.e("ChatActivity", "Initialization error", e)
             Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
@@ -81,55 +98,13 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun makeCall() {
-        if (userPhone.isNullOrEmpty()) {
-            Toast.makeText(this, "Номер телефона недоступен", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CALL_PHONE),
-                CALL_PERMISSION_REQUEST
-            )
-            return
-        }
-
-        try {
-            val phoneDigits = userPhone!!.replace(Regex("[^0-9]"), "")
-            val callIntent = Intent(Intent.ACTION_CALL)
-            callIntent.data = Uri.parse("tel:+$phoneDigits")
-            startActivity(callIntent)
-        } catch (e: Exception) {
-            Log.e("ChatActivity", "Call error", e)
-            Toast.makeText(this, "Не удалось совершить звонок", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CALL_PERMISSION_REQUEST) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                makeCall()
-            } else {
-                Toast.makeText(this, "Разрешение на звонки необходимо для совершения вызовов", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private fun loadMessages() {
+    private fun loadMessagesRealtime() {
         val uid = otherUserId ?: return
         val current = currentUserId ?: return
 
         lifecycleScope.launch {
             try {
-                repository?.getMessages(uid, current)?.collect { messages ->
+                repository?.observeMessages(current, uid)?.collect { messages ->
                     adapter.submitList(messages) {
                         binding.rvMessages.scrollToPosition(messages.size - 1)
                     }
@@ -137,6 +112,55 @@ class ChatActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Log.e("ChatActivity", "Load messages error", e)
+            }
+        }
+    }
+
+    private fun observeUserStatus() {
+        val uid = otherUserId ?: return
+
+        lifecycleScope.launch {
+            try {
+                repository?.observeUserStatus(uid)?.collect { user ->
+                    updateUserStatusUI(user)
+                }
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Observe user status error", e)
+            }
+        }
+    }
+
+    private fun updateUserStatusUI(user: User) {
+        if (user.isOnline) {
+            binding.tvStatus.text = "онлайн"
+            binding.tvStatus.setTextColor(getColor(R.color.primary))
+            binding.statusIndicator.setBackgroundResource(R.drawable.status_online)
+        } else {
+            val lastSeen = user.lastSeen
+            if (lastSeen > 0) {
+                val timeAgo = DateUtils.getRelativeTimeSpanString(
+                    lastSeen,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS
+                )
+                binding.tvStatus.text = "был(а) $timeAgo"
+            } else {
+                binding.tvStatus.text = "не в сети"
+            }
+            binding.tvStatus.setTextColor(getColor(R.color.text_secondary))
+            binding.statusIndicator.setBackgroundResource(R.drawable.status_offline)
+        }
+    }
+
+    private fun markMessagesAsRead() {
+        val uid = otherUserId ?: return
+        val current = currentUserId ?: return
+
+        lifecycleScope.launch {
+            try {
+                repository?.markMessagesAsRead(current, uid)
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Mark messages read error", e)
             }
         }
     }
@@ -156,5 +180,79 @@ class ChatActivity : AppCompatActivity() {
                 Toast.makeText(this@ChatActivity, "Ошибка отправки", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun startCall(isVideo: Boolean) {
+        val intent = Intent(this, CallActivity::class.java).apply {
+            putExtra("otherUserId", otherUserId)
+            putExtra("callerName", username)
+            putExtra("isCaller", true)
+            putExtra("isVideo", isVideo)
+        }
+        startActivity(intent)
+    }
+
+    // Context menu for message actions
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        if (selectedMessage?.senderId == currentUserId) {
+            menu.add(0, 1, 0, "Редактировать")
+            menu.add(0, 2, 0, "Удалить")
+        }
+        menu.add(0, 3, 0, "Копировать")
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val message = selectedMessage ?: return super.onContextItemSelected(item)
+        val uid = otherUserId ?: return super.onContextItemSelected(item)
+        val current = currentUserId ?: return super.onContextItemSelected(item)
+
+        when (item.itemId) {
+            1 -> showEditDialog(message, current, uid)
+            2 -> showDeleteDialog(message, current, uid)
+            3 -> copyMessage(message)
+        }
+        return super.onContextItemSelected(item)
+    }
+
+    private fun showEditDialog(message: Message, currentUserId: String, otherUserId: String) {
+        val editText = EditText(this).apply {
+            setText(message.content)
+            setSelection(message.content.length)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Редактировать сообщение")
+            .setView(editText)
+            .setPositiveButton("Сохранить") { _, _ ->
+                val newContent = editText.text.toString().trim()
+                if (newContent.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        repository?.editMessage(message.id, currentUserId, otherUserId, newContent)
+                    }
+                }
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun showDeleteDialog(message: Message, currentUserId: String, otherUserId: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Удалить сообщение?")
+            .setMessage("Это действие нельзя отменить")
+            .setPositiveButton("Удалить") { _, _ ->
+                lifecycleScope.launch {
+                    repository?.deleteMessage(message.id, currentUserId, otherUserId)
+                }
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun copyMessage(message: Message) {
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("message", message.content)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "Скопировано", Toast.LENGTH_SHORT).show()
     }
 }

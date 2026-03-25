@@ -9,11 +9,12 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="@color/surface"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="8dp">
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -23,6 +24,13 @@
             android:src="@android:drawable/ic_menu_revert"
             android:tint="@color/text_primary"
             android:contentDescription="Назад"/>
+
+        <View
+            android:id="@+id/statusIndicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/status_offline"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -40,6 +48,13 @@
                 android:textColor="@color/text_primary"/>
 
             <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"/>
+
+            <TextView
                 android:id="@+id/tvPhone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -48,6 +63,15 @@
                 android:visibility="gone"/>
 
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnVideoCall"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_camera"
+            android:tint="@color/primary"
+            android:contentDescription="Видеозвонок"/>
 
         <ImageButton
             android:id="@+id/btnCall"

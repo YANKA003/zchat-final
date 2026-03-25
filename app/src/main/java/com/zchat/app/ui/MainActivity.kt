@@ -1,6 +1,6 @@
 package com.zchat.app.ui
 
-import android.Manifest
+import.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -17,9 +17,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
+import com.zchat.app.data.model.Call
 import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ActivityMainBinding
 import com.zchat.app.ui.auth.AuthActivity
+import com.zchat.app.ui.calls.CallActivity
 import com.zchat.app.ui.chats.ChatActivity
 import com.zchat.app.ui.settings.SettingsActivity
 import kotlinx.coroutines.launch
@@ -29,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private var repository: Repository? = null
     private lateinit var adapter: UsersAdapter
     private val CONTACTS_PERMISSION_REQUEST = 100
+    private val NOTIFICATION_PERMISSION_REQUEST = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +47,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             setupUI()
-            checkContactsPermissionAndLoad()
+            checkPermissions()
+            checkIntentExtras()
+
+            // Observe incoming calls
+            observeIncomingCalls()
         } catch (e: Exception) {
             Log.e("MainActivity", "Initialization error", e)
             Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
@@ -87,23 +94,36 @@ class MainActivity : AppCompatActivity() {
             binding.rvUsers.adapter = adapter
 
             binding.btnImportContacts.setOnClickListener {
-                checkContactsPermissionAndLoad()
+                checkPermissions()
             }
         } catch (e: Exception) {
             Log.e("MainActivity", "UI setup error", e)
         }
     }
 
-    private fun checkContactsPermissionAndLoad() {
+    private fun checkPermissions() {
+        val permissions = mutableListOf<String>()
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-            == PackageManager.PERMISSION_GRANTED) {
-            loadContactUsers()
-        } else {
+            != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.READ_CONTACTS)
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        if (permissions.isNotEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.READ_CONTACTS),
+                permissions.toTypedArray(),
                 CONTACTS_PERMISSION_REQUEST
             )
+        } else {
+            loadContactUsers()
         }
     }
 
@@ -114,7 +134,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CONTACTS_PERMISSION_REQUEST) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 loadContactUsers()
             } else {
                 Toast.makeText(this, "Разрешение на контакты необходимо для поиска друзей", Toast.LENGTH_LONG).show()
@@ -137,11 +157,9 @@ class MainActivity : AppCompatActivity() {
                 val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 while (it.moveToNext()) {
                     val number = it.getString(numberIndex)
-                    // Normalize phone number (remove all non-digits)
                     val normalized = number.replace(Regex("[^0-9]"), "")
                     if (normalized.isNotEmpty()) {
                         phones.add(normalized)
-                        // Also add without country code prefix for matching
                         if (normalized.length > 10) {
                             phones.add(normalized.takeLast(10))
                         }
@@ -160,11 +178,9 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Get phone contacts
                 val contactPhones = getPhoneContacts()
                 Log.d("MainActivity", "Found ${contactPhones.size} phone numbers in contacts")
 
-                // Get all users from Firebase
                 val result = repository?.searchUsers("")
                 binding.progressBar.visibility = View.GONE
 
@@ -172,12 +188,10 @@ class MainActivity : AppCompatActivity() {
                     onSuccess = { users ->
                         val currentUid = repository?.currentUser?.uid
 
-                        // Filter users: show only those in contacts or self
                         val filtered = users.filter { user ->
                             if (user.uid == currentUid) {
-                                false // Don't show self
+                                false
                             } else {
-                                // Check if user's phone is in contacts
                                 val userPhone = user.phoneNumber.replace(Regex("[^0-9]"), "")
                                 val userPhoneShort = if (userPhone.length > 10) userPhone.takeLast(10) else userPhone
 
@@ -205,6 +219,60 @@ class MainActivity : AppCompatActivity() {
                 binding.progressBar.visibility = View.GONE
                 Log.e("MainActivity", "Load users error", e)
                 Toast.makeText(this@MainActivity, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun observeIncomingCalls() {
+        val uid = repository?.currentUser?.uid ?: return
+
+        lifecycleScope.launch {
+            try {
+                repository?.observeIncomingCalls(uid)?.collect { call ->
+                    showIncomingCall(call)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Observe calls error", e)
+            }
+        }
+    }
+
+    private fun showIncomingCall(call: Call) {
+        val intent = Intent(this, CallActivity::class.java).apply {
+            putExtra("callId", call.id)
+            putExtra("callerId", call.callerId)
+            putExtra("callerName", call.callerName)
+            putExtra("isCaller", false)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
+
+    private fun checkIntentExtras() {
+        // Handle notification tap
+        if (intent.getBooleanExtra("openChat", false)) {
+            val userId = intent.getStringExtra("userId")
+            val username = intent.getStringExtra("username")
+            if (userId != null && username != null) {
+                val chatIntent = Intent(this, ChatActivity::class.java).apply {
+                    putExtra("userId", userId)
+                    putExtra("username", username)
+                }
+                startActivity(chatIntent)
+            }
+        }
+
+        // Handle incoming call notification
+        if (intent.getBooleanExtra("incomingCall", false)) {
+            val callerId = intent.getStringExtra("callerId")
+            val callerName = intent.getStringExtra("callerName")
+            if (callerId != null && callerName != null) {
+                val callIntent = Intent(this, CallActivity::class.java).apply {
+                    putExtra("callerId", callerId)
+                    putExtra("callerName", callerName)
+                    putExtra("isCaller", false)
+                }
+                startActivity(callIntent)
             }
         }
     }
