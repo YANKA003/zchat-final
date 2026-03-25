@@ -113,7 +113,7 @@
                     android:layout_height="56dp"
                     android:layout_marginHorizontal="16dp"
                     android:background="@drawable/bg_call_control"
-                    android:src="@android:drawable/ic_volume_btn"
+                    android:src="@drawable/ic_speaker"
                     android:tint="@android:color/white"
                     android:scaleType="center"
                     android:contentDescription="Динамик"/>
