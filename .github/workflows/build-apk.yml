@@ -55,25 +55,16 @@ jobs:
         print('Icons created!')
         EOF
 
-    - name: Debug - Check secret
+    - name: Check google-services.json
       run: |
-        echo "Checking GOOGLE_SERVICES_JSON secret..."
-        if [ -z "$GOOGLE_SERVICES_JSON" ]; then
-          echo "ERROR: Secret is EMPTY or NOT SET!"
-          exit 1
+        if [ -f "app/google-services.json" ]; then
+          echo "✅ google-services.json found!"
+          echo "Size: $(wc -c < app/google-services.json) bytes"
         else
-          echo "Secret exists, length: ${#GOOGLE_SERVICES_JSON} characters"
-          echo "First 50 chars: ${GOOGLE_SERVICES_JSON:0:50}..."
+          echo "❌ ERROR: google-services.json NOT found!"
+          echo "Please add google-services.json to app/ folder"
+          exit 1
         fi
-
-    - name: Create google-services.json
-      run: |
-        mkdir -p app/src
-        echo "$GOOGLE_SERVICES_JSON" | base64 -d > app/google-services.json
-        echo "File created, size: $(wc -c < app/google-services.json) bytes"
-        echo "Content preview:"
-        head -c 300 app/google-services.json
-        echo ""
 
     - name: Download Gradle Wrapper
       run: |
@@ -88,4 +79,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: zchat-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk 
+        path: app/build/outputs/apk/debug/app-debug.apk
