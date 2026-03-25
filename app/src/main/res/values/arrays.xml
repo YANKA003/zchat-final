@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="backgrounds">
+        <item>По умолчанию</item>
+        <item>Тёмный</item>
+        <item>Синий</item>
+        <item>Фиолетовый</item>
+    </string-array>
+    <string-array name="background_values">
+        <item>default</item>
+        <item>dark</item>
+        <item>blue</item>
+        <item>purple</item>
+    </string-array>
+    <string-array name="sounds">
+        <item>По умолчанию</item>
+        <item>Мелодия 1</item>
+        <item>Мелодия 2</item>
+        <item>Без звука</item>
+    </string-array>
+    <string-array name="sound_values">
+        <item>default</item>
+        <item>melody1</item>
+        <item>melody2</item>
+        <item>silent</item>
+    </string-array>
+</resources>

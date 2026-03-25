@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ZChat</string>
+    <string name="login">Войти</string>
+    <string name="register">Регистрация</string>
+    <string name="email">Email</string>
+    <string name="password">Пароль</string>
+    <string name="username">Имя пользователя</string>
+    <string name="settings">Настройки</string>
+    <string name="premium">Premium</string>
+    <string name="logout">Выйти</string>
+    <string name="users">Пользователи</string>
+    <string name="no_users">Нет пользователей</string>
+    <string name="online">В сети</string>
+    <string name="offline">Не в сети</string>
+    <string name="type_message">Сообщение...</string>
+    <string name="send">Отправить</string>
+    <string name="no_messages">Нет сообщений</string>
+</resources>

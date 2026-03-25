@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "292126318576",
+    "firebase_url": "https://zchat-6b877-default-rtdb.firebaseio.com",
+    "project_id": "zchat-6b877",
+    "storage_bucket": "zchat-6b877.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292126318576:android:d3a0d836d95994f2478735",
+        "android_client_info": {
+          "package_name": "com.zchat.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVOVWDtY7WysFeBPloJJX4kTBRMNMMeO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

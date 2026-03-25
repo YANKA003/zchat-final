@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Аккаунт">
+        <Preference
+            android:key="account_info"
+            android:title="Личные данные"
+            android:summary="Имя, email, фото профиля"/>
+        <Preference
+            android:key="phone_number"
+            android:title="Номер телефона"
+            android:summary="Изменить номер"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Чаты">
+        <ListPreference
+            android:key="chat_background"
+            android:title="Фон чата"
+            android:entries="@array/backgrounds"
+            android:entryValues="@array/background_values"
+            android:defaultValue="default"/>
+        <SwitchPreferenceCompat
+            android:key="enable_animations"
+            android:title="Анимации"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Приватность">
+        <SwitchPreferenceCompat
+            android:key="show_online_status"
+            android:title="Показывать статус онлайн"
+            android:defaultValue="true"/>
+        <SwitchPreferenceCompat
+            android:key="app_lock"
+            android:title="Блокировка приложения"
+            android:summary="Требовать PIN/отпечаток"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Уведомления">
+        <ListPreference
+            android:key="notification_sound"
+            android:title="Звук уведомлений"
+            android:entries="@array/sounds"
+            android:entryValues="@array/sound_values"
+            android:defaultValue="default"/>
+        <SwitchPreferenceCompat
+            android:key="announce_caller"
+            android:title="Озвучивать имя звонящего"
+            android:defaultValue="false"/>
+        <SwitchPreferenceCompat
+            android:key="notifications_enabled"
+            android:title="Уведомления"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Энергосбережение">
+        <SwitchPreferenceCompat
+            android:key="battery_saver"
+            android:title="Режим энергосбережения"
+            android:summary="Автоматически включать при низком заряде"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Дополнительно">
+        <Preference
+            android:key="vpn_detection"
+            android:title="Обнаружение VPN"
+            android:summary="Проверять использование VPN"/>
+        <Preference
+            android:key="premium"
+            android:title="ZChat Premium"
+            android:summary="Разблокировать все функции"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
