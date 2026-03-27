@@ -2,6 +2,7 @@ package com.zchat.app.ui.chats
 
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
@@ -12,7 +13,10 @@ import com.zchat.app.data.model.Message
 import com.zchat.app.databinding.ItemMessageBinding
 import com.zchat.app.ui.theme.ThemeManager
 
-class MessagesAdapter(private val currentUserId: String) : ListAdapter<Message, MessagesAdapter.MessageViewHolder>(DiffCallback()) {
+class MessagesAdapter(
+    private val currentUserId: String,
+    private val onMessageLongClick: ((Message, View) -> Unit)? = null
+) : ListAdapter<Message, MessagesAdapter.MessageViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val binding = ItemMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -43,6 +47,14 @@ class MessagesAdapter(private val currentUserId: String) : ListAdapter<Message, 
                 }
                 binding.tvMessage.background = receivedBg
                 binding.tvMessage.setTextColor(colors.receivedMessageText.toColorInt())
+            }
+            
+            // Long click listener for context menu
+            onMessageLongClick?.let { listener ->
+                binding.root.setOnLongClickListener { view ->
+                    listener(message, view)
+                    true
+                }
             }
         }
     }
