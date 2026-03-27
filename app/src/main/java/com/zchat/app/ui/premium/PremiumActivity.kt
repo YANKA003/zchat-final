@@ -1,18 +1,14 @@
 package com.zchat.app.ui.premium
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.core.graphics.toColorInt
 import com.zchat.app.R
 import com.zchat.app.data.Repository
 import com.zchat.app.data.model.PremiumPricing
 import com.zchat.app.databinding.ActivityPremiumBinding
 import com.zchat.app.ui.theme.ThemeManager
-import kotlinx.coroutines.launch
 
 class PremiumActivity : AppCompatActivity() {
     
@@ -60,14 +56,14 @@ class PremiumActivity : AppCompatActivity() {
         val premiumType = settings.premiumType
         
         if (isPremium && premiumType.isNotEmpty()) {
-            binding.cardCurrentPlan.visibility = android.view.View.VISIBLE
+            binding.cardCurrentPlan.visibility = View.VISIBLE
             binding.tvCurrentPlan.text = when (premiumType) {
                 "BASIC" -> "✓ BASIC активен"
                 "GOODPLAN" -> "✓ GOODPLAN активен ⭐"
                 else -> "✓ Premium активен"
             }
         } else {
-            binding.cardCurrentPlan.visibility = android.view.View.GONE
+            binding.cardCurrentPlan.visibility = View.GONE
         }
     }
     
@@ -87,7 +83,7 @@ class PremiumActivity : AppCompatActivity() {
     }
     
     private fun processPurchase(type: String, price: Double, isMonthly: Boolean) {
-        // Демо-покупка (в реальном приложении - интеграция с платежами)
+        // Демо-покупка
         val settings = repository.preferencesManager.settings.value
         
         val newSettings = settings.copy(
@@ -99,10 +95,10 @@ class PremiumActivity : AppCompatActivity() {
         repository.preferencesManager.updateSettings(newSettings)
         
         val planName = if (type == "GOODPLAN") "GOODPLAN ⭐" else "BASIC"
-        Toast.makeText(
+        android.widget.Toast.makeText(
             this,
             "Подписка $planName активирована! Спасибо за покупку.",
-            Toast.LENGTH_LONG
+            android.widget.Toast.LENGTH_LONG
         ).show()
         
         loadCurrentSubscription()

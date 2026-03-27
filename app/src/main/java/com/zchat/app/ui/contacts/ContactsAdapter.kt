@@ -37,9 +37,11 @@ class ContactsAdapter(
             
             // Статус блокировки
             if (contact.isBlocked) {
+                binding.tvStatus.visibility = android.view.View.VISIBLE
                 binding.tvStatus.text = "🚫 " + binding.root.context.getString(R.string.blocked)
                 binding.tvStatus.setTextColor("#EF4444".toColorInt())
             } else if (!contact.isAllowed) {
+                binding.tvStatus.visibility = android.view.View.VISIBLE
                 binding.tvStatus.text = "⚠️ " + binding.root.context.getString(R.string.not_allowed)
                 binding.tvStatus.setTextColor("#F59E0B".toColorInt())
             } else {
@@ -52,8 +54,8 @@ class ContactsAdapter(
                 setColor(colors.primary.toColorInt())
             }
             binding.ivAvatar.background = avatarBg
-            binding.tvAvatar.text = contact.displayName.take(1).uppercase()
-            binding.tvAvatar.setTextColor(colors.sentMessageText.toColorInt())
+            binding.ivAvatar.text = contact.displayName.take(1).uppercase()
+            binding.ivAvatar.setTextColor(colors.sentMessageText.toColorInt())
             
             // Кнопки
             binding.root.setOnClickListener { onContactClick(contact) }

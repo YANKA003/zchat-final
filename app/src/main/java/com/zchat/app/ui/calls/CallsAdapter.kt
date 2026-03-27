@@ -41,7 +41,6 @@ class CallsAdapter(
             binding.tvName.text = name
             
             // Тип звонка
-            val iconRes = if (call.type == "VIDEO") R.drawable.ic_video else R.drawable.ic_phone
             val typeText = if (call.type == "VIDEO") "📹" else "📞"
             
             // Статус и направление
@@ -52,7 +51,7 @@ class CallsAdapter(
             }
             
             // Время звонка (по минскому времени UTC+3)
-            val minskTime = call.timestamp + (3 * 60 * 60 * 1000) // добавляем 3 часа
+            val minskTime = call.timestamp + (3 * 60 * 60 * 1000)
             val date = Date(minskTime)
             val now = Date()
             val isToday = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(date) == 
@@ -94,7 +93,6 @@ class CallsAdapter(
                 setColor(colors.primary.toColorInt())
             }
             binding.ivAvatar.background = avatarBg
-            binding.ivAvatar.text = name.take(1).uppercase()
         }
     }
     

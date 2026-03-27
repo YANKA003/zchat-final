@@ -124,6 +124,8 @@
     <string name="loading">Загрузка...</string>
     <string name="retry">Повторить</string>
     <string name="create">Создать</string>
+    <string name="contacts">Контакты</string>
+    <string name="cancel">Отмена</string>
     
     <!-- Premium settings -->
     <string name="allowed_contacts_only">Только разрешённые контакты видят мой профиль</string>

@@ -5,6 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
@@ -117,7 +118,7 @@ class ContactsActivity : AppCompatActivity() {
     }
     
     private fun toggleBlock(contact: Contact) {
-        val message = if (contact.isBlocked) {
+        val messageId = if (contact.isBlocked) {
             R.string.unblock_contact_confirm
         } else {
             R.string.block_contact_confirm
@@ -125,7 +126,7 @@ class ContactsActivity : AppCompatActivity() {
         
         AlertDialog.Builder(this)
             .setTitle(if (contact.isBlocked) R.string.unblock else R.string.block)
-            .setMessage(message)
+            .setMessage(messageId)
             .setPositiveButton(R.string.yes) { _, _ ->
                 performBlock(contact, !contact.isBlocked)
             }

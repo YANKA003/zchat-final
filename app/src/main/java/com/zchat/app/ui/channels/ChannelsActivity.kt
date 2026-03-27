@@ -1,11 +1,14 @@
 package com.zchat.app.ui.channels
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
@@ -46,9 +49,13 @@ class ChannelsActivity : AppCompatActivity() {
         // Поиск каналов (только для Premium)
         if (isPremiumUser) {
             binding.searchLayout.visibility = View.VISIBLE
-            binding.etSearch.setOnTextChangedListener { text ->
-                searchChannels(text?.toString() ?: "")
-            }
+            binding.etSearch.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    searchChannels(s?.toString() ?: "")
+                }
+            })
         } else {
             binding.searchLayout.visibility = View.GONE
         }
@@ -130,11 +137,12 @@ class ChannelsActivity : AppCompatActivity() {
     }
     
     private fun openChannel(channel: Channel) {
-        // Открыть канал
-        val intent = android.content.Intent(this, ChannelDetailActivity::class.java)
-        intent.putExtra("channelId", channel.id)
-        intent.putExtra("channelName", channel.name)
-        startActivity(intent)
+        // Открыть канал - показать информацию
+        AlertDialog.Builder(this)
+            .setTitle(channel.name)
+            .setMessage(channel.description + "\n\nПодписчиков: ${channel.subscribersCount}")
+            .setPositiveButton("OK", null)
+            .show()
     }
     
     private fun toggleSubscription(channel: Channel) {
