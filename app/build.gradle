@@ -57,6 +57,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-database-ktx'
+    implementation 'com.google.firebase:firebase-messaging-ktx'
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
@@ -67,4 +68,7 @@ dependencies {
 
     // Glide for images
     implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // Billing
+    implementation 'com.android.billingclient:billing-ktx:6.1.0'
 }

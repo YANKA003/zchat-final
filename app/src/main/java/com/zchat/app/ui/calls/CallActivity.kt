@@ -1,16 +1,9 @@
 package com.zchat.app.ui.calls
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.View
+import android.os.CountDownTimer
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.zchat.app.R
 import com.zchat.app.data.Repository
@@ -20,19 +13,17 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 class CallActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityCallBinding
-    private var repository: Repository? = null
-
+    private lateinit var repository: Repository
     private var callId: String? = null
+    private var callerId: String? = null
     private var callerName: String? = null
-    private var isCaller: Boolean = false
-    private var otherUserId: String? = null
-    private var otherUserPhone: String? = null
-    private var isVideoCall = false
-    private var isMuted = false
-
-    private val CALL_PERMISSION_REQUEST = 102
+    private var receiverId: String? = null
+    private var receiverName: String? = null
+    private var callType: String = "VOICE"
+    private var callStatus: String = "OUTGOING"
+    private var timer: CountDownTimer? = null
+    private var callDuration: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,188 +32,95 @@ class CallActivity : AppCompatActivity() {
 
         repository = Repository(applicationContext)
 
+        // Get intent extras
         callId = intent.getStringExtra("callId")
-        callerName = intent.getStringExtra("callerName") ?: intent.getStringExtra("username")
-        isCaller = intent.getBooleanExtra("isCaller", false)
-        otherUserId = intent.getStringExtra("otherUserId") ?: intent.getStringExtra("callerId")
-        otherUserPhone = intent.getStringExtra("userPhone")
-        isVideoCall = intent.getBooleanExtra("isVideo", false)
+        callerId = intent.getStringExtra("callerId")
+        callerName = intent.getStringExtra("callerName")
+        receiverId = intent.getStringExtra("receiverId")
+        receiverName = intent.getStringExtra("receiverName")
+        callType = intent.getStringExtra("type") ?: "VOICE"
+        callStatus = intent.getStringExtra("status") ?: "OUTGOING"
 
-        if (!isCaller) {
-            showIncomingCallUI()
+        setupUI()
+
+        binding.btnEndCall.setOnClickListener { endCall() }
+        binding.btnMute.setOnClickListener { toggleMute() }
+        binding.btnSpeaker.setOnClickListener { toggleSpeaker() }
+    }
+
+    private fun setupUI() {
+        binding.tvCallerName.text = callerName ?: receiverName ?: getString(R.string.unknown)
+        binding.tvCallStatus.text = if (callStatus == "OUTGOING") {
+            getString(R.string.outgoing_call)
         } else {
-            startOutgoingCall()
+            getString(R.string.incoming_call)
         }
 
-        setupButtons()
+        if (callType == "VIDEO") {
+            binding.ivCallType.setImageResource(R.drawable.ic_video)
+        } else {
+            binding.ivCallType.setImageResource(R.drawable.ic_phone)
+        }
+
+        startCallTimer()
     }
 
-    private fun showIncomingCallUI() {
-        binding.tvCallStatus.text = "Входящий звонок"
-        binding.tvCallerName.text = callerName ?: "Неизвестный"
-        binding.llIncomingCall.visibility = View.VISIBLE
-        binding.llActiveCall.visibility = View.GONE
-    }
+    private fun startCallTimer() {
+        updateCallStatus("CONNECTING")
 
-    private fun showActiveCallUI() {
-        binding.llIncomingCall.visibility = View.GONE
-        binding.llActiveCall.visibility = View.VISIBLE
-        binding.tvCallerName.text = callerName ?: "Неизвестный"
-        binding.tvCallStatus.text = if (isVideoCall) "Видеозвонок" else "Голосовой звонок"
-    }
-
-    private fun setupButtons() {
-        binding.btnAccept.setOnClickListener {
-            acceptCall()
-        }
-
-        binding.btnDecline.setOnClickListener {
-            declineCall()
-        }
-
-        binding.btnEndCall.setOnClickListener {
-            endCall()
-        }
-
-        binding.btnMute.setOnClickListener {
-            toggleMute()
-        }
-
-        binding.btnSpeaker.setOnClickListener {
-            toggleSpeaker()
-        }
-
-        // Video button - for future implementation
-        binding.btnVideo.visibility = View.GONE
-    }
-
-    private fun acceptCall() {
-        lifecycleScope.launch {
-            callId?.let { id ->
-                repository?.updateCallStatus(id, "ACTIVE")
-            }
-        }
-        showActiveCallUI()
-        
-        // For now, initiate a regular phone call
-        // In the future, this would connect WebRTC
-        showCallOptions()
-    }
-
-    private fun showCallOptions() {
-        if (!otherUserPhone.isNullOrEmpty()) {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Способ связи")
-                .setMessage("VoIP звонки в разработке. Использовать обычный звонок?")
-                .setPositiveButton("Позвонить") { _, _ ->
-                    makePhoneCall()
+        // Simulate call connection after 2 seconds
+        timer = object : CountDownTimer(Long.MAX_VALUE, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                callDuration++
+                val minutes = callDuration / 60
+                val seconds = callDuration % 60
+                binding.tvCallDuration.text = String.format("%02d:%02d", minutes, seconds)
+                binding.tvCallStatus.text = getString(R.string.call_ended).let {
+                    if (callDuration < 3) "Connecting..." else "Connected"
                 }
-                .setNegativeButton("Отмена", null)
-                .show()
-        }
-    }
-
-    private fun startOutgoingCall() {
-        showActiveCallUI()
-        binding.tvCallStatus.text = "Вызов..."
-
-        lifecycleScope.launch {
-            try {
-                val id = callId ?: UUID.randomUUID().toString()
-                callId = id
-
-                val call = Call(
-                    id = id,
-                    callerId = repository?.currentUser?.uid ?: "",
-                    callerName = repository?.currentUser?.displayName ?: "Пользователь",
-                    receiverId = otherUserId ?: "",
-                    receiverName = callerName ?: "",
-                    timestamp = System.currentTimeMillis(),
-                    type = if (isVideoCall) "VIDEO" else "VOICE",
-                    status = "RINGING"
-                )
-
-                repository?.initiateCall(call)
-
-                // Show call options after a delay
-                binding.tvCallStatus.text = "Соединение..."
-                binding.root.postDelayed({
-                    showCallOptions()
-                }, 2000)
-
-            } catch (e: Exception) {
-                Log.e("CallActivity", "Failed to start call", e)
-                Toast.makeText(this@CallActivity, "Ошибка звонка", Toast.LENGTH_SHORT).show()
-                finish()
             }
-        }
+
+            override fun onFinish() {}
+        }.start()
     }
 
-    private fun makePhoneCall() {
-        if (otherUserPhone.isNullOrEmpty()) {
-            Toast.makeText(this, "Номер телефона недоступен", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CALL_PHONE),
-                CALL_PERMISSION_REQUEST
-            )
-            return
-        }
-
-        try {
-            val phoneDigits = otherUserPhone!!.replace(Regex("[^0-9]"), "")
-            val callIntent = Intent(Intent.ACTION_CALL)
-            callIntent.data = Uri.parse("tel:+$phoneDigits")
-            startActivity(callIntent)
-        } catch (e: Exception) {
-            Log.e("CallActivity", "Call error", e)
-            Toast.makeText(this, "Не удалось совершить звонок", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CALL_PERMISSION_REQUEST) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                makePhoneCall()
-            } else {
-                Toast.makeText(this, "Разрешение на звонки необходимо", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private fun declineCall() {
-        lifecycleScope.launch {
-            callId?.let { id ->
-                repository?.updateCallStatus(id, "DECLINED")
-            }
-        }
-        finish()
+    private fun updateCallStatus(status: String) {
+        binding.tvCallStatus.text = status
     }
 
     private fun endCall() {
+        timer?.cancel()
+
+        // Save call to history
+        val call = Call(
+            id = callId ?: UUID.randomUUID().toString(),
+            callerId = callerId ?: "",
+            callerName = callerName ?: "",
+            receiverId = receiverId ?: "",
+            receiverName = receiverName ?: "",
+            timestamp = System.currentTimeMillis(),
+            duration = callDuration,
+            type = callType,
+            status = if (callDuration == 0L) "MISSED" else "ENDED"
+        )
+
         lifecycleScope.launch {
-            callId?.let { id ->
-                repository?.updateCallStatus(id, "ENDED")
-            }
+            repository.saveCall(call)
         }
+
         finish()
     }
 
     private fun toggleMute() {
-        isMuted = !isMuted
-        Toast.makeText(this, if (isMuted) "Микрофон выключен" else "Микрофон включён", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Mute toggled", Toast.LENGTH_SHORT).show()
     }
 
     private fun toggleSpeaker() {
-        val audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
-        audioManager.mode = android.media.AudioManager.MODE_IN_CALL
-        audioManager.isSpeakerphoneOn = !audioManager.isSpeakerphoneOn
-        Toast.makeText(this, if (audioManager.isSpeakerphoneOn) "Динамик включён" else "Динамик выключен", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Speaker toggled", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        timer?.cancel()
     }
 }

@@ -43,6 +43,7 @@ data class Call(
     val callerName: String = "",
     val callerAvatar: String = "",
     val receiverId: String,
+    val receiverName: String = "",
     val timestamp: Long,
     val duration: Long = 0,
     val type: String = "VOICE", // "VOICE" or "VIDEO"
@@ -50,7 +51,7 @@ data class Call(
     val isRecorded: Boolean = false,
     val recordingPath: String = ""
 ) {
-    constructor() : this("", "", "", "", "", 0, 0, "VOICE", "ENDED", false, "")
+    constructor() : this("", "", "", "", "", "", 0, 0, "VOICE", "ENDED", false, "")
 }
 
 @Entity(tableName = "channels")

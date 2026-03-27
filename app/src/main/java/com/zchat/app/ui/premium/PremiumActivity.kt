@@ -3,13 +3,17 @@ package com.zchat.app.ui.premium
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.zchat.app.R
+import com.zchat.app.billing.BillingManager
 import com.zchat.app.data.Repository
 import com.zchat.app.databinding.ActivityPremiumBinding
+import kotlinx.coroutines.launch
 
 class PremiumActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPremiumBinding
     private lateinit var repository: Repository
+    private lateinit var billingManager: BillingManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,15 +21,43 @@ class PremiumActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         repository = Repository(applicationContext)
+        billingManager = BillingManager(this)
 
         setSupportActionBar(binding.toolbarPremium)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.premium)
 
+        setupBilling()
         setupPlans()
-
-        // Show current premium status
         updatePremiumStatus()
+    }
+
+    private fun setupBilling() {
+        billingManager.startConnection {
+            // Billing client connected
+            lifecycleScope.launch {
+                billingManager.purchaseState.collect { state ->
+                    when (state) {
+                        is BillingManager.PurchaseState.Success -> {
+                            Toast.makeText(
+                                this@PremiumActivity,
+                                "${getString(R.string.success)}! ${state.sku}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            updatePremiumStatus()
+                        }
+                        is BillingManager.PurchaseState.Error -> {
+                            Toast.makeText(
+                                this@PremiumActivity,
+                                "${getString(R.string.error)}: ${state.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
     }
 
     private fun setupPlans() {
@@ -47,43 +79,52 @@ class PremiumActivity : AppCompatActivity() {
 
         // BASIC monthly button
         binding.btnBasicMonthly.setOnClickListener {
-            purchasePremium("BASIC", "monthly", 2.0)
+            purchasePlan(BillingManager.SKU_BASIC_MONTHLY)
         }
 
         // BASIC forever button
         binding.btnBasicForever.setOnClickListener {
-            purchasePremium("BASIC", "forever", 6.0)
+            purchasePlan(BillingManager.SKU_BASIC_FOREVER)
         }
 
         // GOODPLAN monthly button
         binding.btnGoodplanMonthly.setOnClickListener {
-            purchasePremium("GOODPLAN", "monthly", 5.0)
+            purchasePlan(BillingManager.SKU_GOODPLAN_MONTHLY)
         }
 
         // GOODPLAN forever button
         binding.btnGoodplanForever.setOnClickListener {
-            purchasePremium("GOODPLAN", "forever", 15.0)
+            purchasePlan(BillingManager.SKU_GOODPLAN_FOREVER)
         }
 
         // Restore purchase
         binding.btnRestore.setOnClickListener {
-            Toast.makeText(this, "Checking purchases...", Toast.LENGTH_SHORT).show()
+            billingManager.restorePurchases { purchases ->
+                if (purchases.isEmpty()) {
+                    Toast.makeText(this, "No purchases found", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "${purchases.size} purchases restored", Toast.LENGTH_SHORT).show()
+                    updatePremiumStatus()
+                }
+            }
         }
     }
 
-    private fun purchasePremium(type: String, duration: String, price: Double) {
-        // TODO: Implement actual payment (Google Play Billing)
-        // For now, just set the premium status
-        repository.isPremium = true
-        repository.premiumType = type
+    private fun purchasePlan(sku: String) {
+        val products = billingManager.getProducts()
+        val product = products.find { it.productId == sku }
 
-        Toast.makeText(
-            this,
-            "${getString(R.string.success)}! $type ($duration)",
-            Toast.LENGTH_LONG
-        ).show()
-
-        updatePremiumStatus()
+        if (product != null) {
+            billingManager.purchase(this, product)
+        } else {
+            // Product not found in Play Console - show demo purchase
+            Toast.makeText(this, "Demo mode: Product not configured in Play Console", Toast.LENGTH_LONG).show()
+            // For testing: grant premium manually
+            val type = if (sku.contains("goodplan", ignoreCase = true)) "GOODPLAN" else "BASIC"
+            repository.isPremium = true
+            repository.premiumType = type
+            updatePremiumStatus()
+        }
     }
 
     private fun updatePremiumStatus() {
@@ -98,5 +139,10 @@ class PremiumActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        billingManager.endConnection()
     }
 }
