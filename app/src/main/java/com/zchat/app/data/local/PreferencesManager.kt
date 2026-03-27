@@ -2,65 +2,39 @@ package com.zchat.app.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.zchat.app.data.model.AppSettings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class PreferencesManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("zchat_prefs", Context.MODE_PRIVATE)
-
-    var theme: Int
-        get() = prefs.getInt("theme", 0)
-        set(value) = prefs.edit().putInt("theme", value).apply()
-
-    var chatBackground: String
-        get() = prefs.getString("chat_background", "default") ?: "default"
-        set(value) = prefs.edit().putString("chat_background", value).apply()
-
-    var enableAnimations: Boolean
-        get() = prefs.getBoolean("enable_animations", true)
-        set(value) = prefs.edit().putBoolean("enable_animations", value).apply()
-
-    var showOnlineStatus: Boolean
-        get() = prefs.getBoolean("show_online_status", true)
-        set(value) = prefs.edit().putBoolean("show_online_status", value).apply()
-
-    var appLockEnabled: Boolean
-        get() = prefs.getBoolean("app_lock_enabled", false)
-        set(value) = prefs.edit().putBoolean("app_lock_enabled", value).apply()
-
-    fun setFingerprintEnabled(enabled: Boolean) {
-        appLockEnabled = enabled
+    private val gson = Gson()
+    
+    private val _settings = MutableStateFlow(loadSettings())
+    val settings: StateFlow<AppSettings> = _settings
+    
+    private fun loadSettings(): AppSettings {
+        val json = prefs.getString("app_settings", null) ?: return AppSettings()
+        return try { gson.fromJson(json, AppSettings::class.java) } catch (e: Exception) { AppSettings() }
     }
-
-    fun isFingerprintEnabled(): Boolean = appLockEnabled
-
-    var notificationSound: String
-        get() = prefs.getString("notification_sound", "default") ?: "default"
-        set(value) = prefs.edit().putString("notification_sound", value).apply()
-
-    var announceCallerName: Boolean
-        get() = prefs.getBoolean("announce_caller_name", false)
-        set(value) = prefs.edit().putBoolean("announce_caller_name", value).apply()
-
-    var notificationsEnabled: Boolean
-        get() = prefs.getBoolean("notifications_enabled", true)
-        set(value) = prefs.edit().putBoolean("notifications_enabled", value).apply()
-
-    var batterySaverMode: Int
-        get() = prefs.getInt("battery_saver_mode", 0)
-        set(value) = prefs.edit().putInt("battery_saver_mode", value).apply()
-
-    var batterySaverThreshold: Int
-        get() = prefs.getInt("battery_saver_threshold", 30)
-        set(value) = prefs.edit().putInt("battery_saver_threshold", value).apply()
-
-    var isPremiumEnabled: Boolean
-        get() = prefs.getBoolean("premium_enabled", false)
-        set(value) = prefs.edit().putBoolean("premium_enabled", value).apply()
-
-    var autoTranslate: Boolean
-        get() = prefs.getBoolean("auto_translate", false)
-        set(value) = prefs.edit().putBoolean("auto_translate", value).apply()
-
-    var targetLanguage: String
-        get() = prefs.getString("target_language", "ru") ?: "ru"
-        set(value) = prefs.edit().putString("target_language", value).apply()
+    
+    fun updateSettings(newSettings: AppSettings) {
+        prefs.edit().putString("app_settings", gson.toJson(newSettings)).apply()
+        _settings.value = newSettings
+    }
+    
+    fun updateTheme(theme: Int) { updateSettings(_settings.value.copy(theme = theme)) }
+    fun updateDesignStyle(style: Int) { updateSettings(_settings.value.copy(designStyle = style)) }
+    fun updateAnimations(enabled: Boolean) { updateSettings(_settings.value.copy(enableAnimations = enabled)) }
+    fun updateOnlineStatus(show: Boolean) { updateSettings(_settings.value.copy(showOnlineStatus = show)) }
+    fun updateAppLock(enabled: Boolean) { updateSettings(_settings.value.copy(appLockEnabled = enabled)) }
+    fun updateAnnounceCaller(enabled: Boolean) { updateSettings(_settings.value.copy(announceCallerName = enabled)) }
+    fun updateNotifications(enabled: Boolean) { updateSettings(_settings.value.copy(notificationsEnabled = enabled)) }
+    fun updateBatterySaverMode(mode: Int) { updateSettings(_settings.value.copy(batterySaverMode = mode)) }
+    fun updatePremium(enabled: Boolean) { updateSettings(_settings.value.copy(premiumEnabled = enabled)) }
+    fun updateAutoTranslate(enabled: Boolean) { updateSettings(_settings.value.copy(autoTranslate = enabled)) }
+    
+    fun isCallRecordingEnabled(): Boolean = prefs.getBoolean("call_recording_enabled", true)
+    fun setCallRecordingEnabled(enabled: Boolean) { prefs.edit().putBoolean("call_recording_enabled", enabled).apply() }
 }

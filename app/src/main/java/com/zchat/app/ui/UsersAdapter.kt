@@ -1,67 +1,61 @@
 package com.zchat.app.ui
 
-import android.text.format.DateUtils
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.zchat.app.R
 import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ItemUserBinding
+import com.zchat.app.ui.theme.ThemeManager
 
-class UsersAdapter(private val onItemClick: (User) -> Unit) :
-    ListAdapter<User, UsersAdapter.UserViewHolder>(UserDiffCallback()) {
+class UsersAdapter(private val onUserClick: (User) -> Unit) : ListAdapter<User, UsersAdapter.UserViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        return UserViewHolder(
-            ItemUserBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        )
+        val binding = ItemUserBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return UserViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    inner class UserViewHolder(private val binding: ItemUserBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class UserViewHolder(private val binding: ItemUserBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                val pos = absoluteAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) onUserClick(getItem(pos))
+            }
+        }
 
         fun bind(user: User) {
-            binding.tvUsername.text = user.username
-
-            // Show online status
-            if (user.isOnline) {
-                binding.tvStatus.text = "онлайн"
-                binding.tvStatus.setTextColor(binding.root.context.getColor(R.color.primary))
-                binding.statusIndicator.setBackgroundResource(R.drawable.status_online)
-            } else {
-                if (user.lastSeen > 0) {
-                    val timeAgo = DateUtils.getRelativeTimeSpanString(
-                        user.lastSeen,
-                        System.currentTimeMillis(),
-                        DateUtils.MINUTE_IN_MILLIS
-                    )
-                    binding.tvStatus.text = "был(а) $timeAgo"
-                } else {
-                    binding.tvStatus.text = ""
-                }
-                binding.tvStatus.setTextColor(binding.root.context.getColor(R.color.text_secondary))
-                binding.statusIndicator.setBackgroundResource(R.drawable.status_offline)
+            binding.tvUsername.text = user.username.ifEmpty { "User" }
+            binding.tvLastMessage.text = if (user.isOnline) "В сети" else "Не в сети"
+            binding.onlineIndicator.visibility = if (user.isOnline) View.VISIBLE else View.GONE
+            
+            // Применяем цвета темы
+            val colors = ThemeManager.getColors()
+            
+            // Цвет аватара
+            val avatarBg = GradientDrawable().apply {
+                setColor(colors.primary.toColorInt())
+                cornerRadius = 24f
             }
-
-            // Show bio if available
-            if (user.bio.isNotEmpty()) {
-                binding.tvBio.text = user.bio
-                binding.tvBio.visibility = android.view.View.VISIBLE
-            } else {
-                binding.tvBio.visibility = android.view.View.GONE
+            binding.ivAvatar.background = avatarBg
+            
+            // Цвет онлайн индикатора
+            val onlineBg = GradientDrawable().apply {
+                setColor(colors.onlineIndicator.toColorInt())
+                cornerRadius = 4f
             }
-
-            binding.root.setOnClickListener { onItemClick(user) }
+            binding.onlineIndicator.background = onlineBg
         }
     }
 
-    class UserDiffCallback : DiffUtil.ItemCallback<User>() {
+    class DiffCallback : DiffUtil.ItemCallback<User>() {
         override fun areItemsTheSame(oldItem: User, newItem: User) = oldItem.uid == newItem.uid
         override fun areContentsTheSame(oldItem: User, newItem: User) = oldItem == newItem
     }

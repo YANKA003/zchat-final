@@ -1,293 +1,166 @@
 package com.zchat.app.ui.settings
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreferenceCompat
 import com.zchat.app.R
 import com.zchat.app.data.Repository
+import com.zchat.app.databinding.ActivitySettingsBinding
+import com.zchat.app.ui.theme.DesignSelectorDialog
+import com.zchat.app.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
-
-    private var repository: Repository? = null
+    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var repository: Repository
+    private var needsRecreate = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.init(applicationContext)
+        applyThemeColors()
+        
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         repository = Repository(applicationContext)
-
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.settings_container, SettingsFragment())
-            .commit()
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Настройки"
-
-        // Check if should show premium
-        if (intent.getBooleanExtra("show_premium", false)) {
-            showPremiumDialog()
+        
+        binding.toolbar.setNavigationOnClickListener { 
+            if (needsRecreate) {
+                // Возвращаем результат для перезапуска MainActivity
+                setResult(RESULT_OK)
+            }
+            finish() 
+        }
+        
+        lifecycleScope.launch {
+            val isVpn = checkVpnStatus()
+            binding.tvVpnStatus.text = if (isVpn) "VPN: Подключён" else "VPN: Не подключён"
+        }
+        
+        binding.cardPremium.setOnClickListener { showPremiumDialog() }
+        binding.btnGetPremium.setOnClickListener { showPremiumDialog() }
+        binding.btnAccount.setOnClickListener { showAccountDialog() }
+        binding.btnPrivacy.setOnClickListener { showPrivacyDialog() }
+        binding.btnChatSettings.setOnClickListener { showThemeDialog() }
+        binding.btnNotifications.setOnClickListener { showNotificationsDialog() }
+        binding.btnBattery.setOnClickListener { showBatteryDialog() }
+        binding.btnDesign.setOnClickListener { showDesignSelector() }
+        
+        binding.switchCallRecording.setOnCheckedChangeListener { _, isChecked ->
+            repository.preferencesManager.setCallRecordingEnabled(isChecked)
+        }
+        binding.switchCallRecording.isChecked = repository.preferencesManager.isCallRecordingEnabled()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        applyThemeColors()
+    }
+    
+    private fun applyThemeColors() {
+        val colors = ThemeManager.getColors()
+        window.statusBarColor = colors.primaryDark.toColorInt()
+        
+        if (::binding.isInitialized) {
+            binding.toolbar.setBackgroundColor(colors.primary.toColorInt())
         }
     }
+    
+    private fun showDesignSelector() {
+        DesignSelectorDialog(this) {
+            needsRecreate = true
+            applyThemeColors()
+            repository.preferencesManager.updateDesignStyle(ThemeManager.getDesign())
+            // Показываем сообщение о необходимости перезапуска
+            Toast.makeText(this, "Дизайн изменён. Перезапустите приложение для полного применения.", Toast.LENGTH_LONG).show()
+        }.show()
+    }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
+    private suspend fun checkVpnStatus(): Boolean {
+        val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
     }
 
     private fun showPremiumDialog() {
         AlertDialog.Builder(this)
-            .setTitle("ZChat Premium")
-            .setMessage("Premium подписка разблокирует:\n\n• Безлимитное хранилище сообщений\n• Расширенные темы оформления\n• Приоритетную поддержку\n• Реклама отключена\n\nЦена: $4.99/месяц")
-            .setPositiveButton("Подписаться") { _, _ ->
-                Toast.makeText(this, "Premium пока недоступен", Toast.LENGTH_SHORT).show()
+            .setTitle("⭐ ZChat Premium")
+            .setMessage("Автоперевод сообщений\nСмена иконки приложения\nЭксклюзивные функции\n\n299 ₽/месяц")
+            .setPositiveButton("Оформить") { _, _ ->
+                repository.preferencesManager.updatePremium(true)
+                Toast.makeText(this, "Premium активирован! (демо)", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Закрыть", null)
             .show()
     }
 
-    class SettingsFragment : PreferenceFragmentCompat() {
-        private var repository: Repository? = null
-        private var biometricPrompt: BiometricPrompt? = null
-        private var promptInfo: BiometricPrompt.PromptInfo? = null
+    private fun showAccountDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Учётная запись")
+            .setMessage("Email: ${repository.currentUser?.email}\n\nВы можете изменить имя и описание в профиле.")
+            .setPositiveButton("OK", null)
+            .show()
+    }
 
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.root_preferences, rootKey)
-            repository = Repository(requireContext())
-
-            setupBiometricAuth()
-            setupProfilePreference()
-            setupPreferences()
-        }
-
-        private fun setupBiometricAuth() {
-            val biometricManager = BiometricManager.from(requireContext())
-            val canAuthenticate = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-
-            if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
-                val executor = ContextCompat.getMainExecutor(requireContext())
-                biometricPrompt = BiometricPrompt(this, executor,
-                    object : BiometricPrompt.AuthenticationCallback() {
-                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                            super.onAuthenticationError(errorCode, errString)
-                            Toast.makeText(requireContext(), "Ошибка аутентификации: $errString", Toast.LENGTH_SHORT).show()
-                            // Reset switch
-                            findPreference<SwitchPreferenceCompat>("app_lock")?.isChecked = false
-                        }
-
-                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                            super.onAuthenticationSucceeded(result)
-                            Toast.makeText(requireContext(), "Отпечаток подтверждён!", Toast.LENGTH_SHORT).show()
-                            // Save preference
-                            repository?.preferencesManager?.setFingerprintEnabled(true)
-                        }
-
-                        override fun onAuthenticationFailed() {
-                            super.onAuthenticationFailed()
-                            Toast.makeText(requireContext(), "Отпечаток не распознан", Toast.LENGTH_SHORT).show()
-                            // Reset switch
-                            findPreference<SwitchPreferenceCompat>("app_lock")?.isChecked = false
-                        }
-                    })
-
-                promptInfo = BiometricPrompt.PromptInfo.Builder()
-                    .setTitle("Блокировка приложения")
-                    .setSubtitle("Используйте отпечаток пальца для разблокировки ZChat")
-                    .setNegativeButtonText("Отмена")
-                    .build()
-            } else {
-                // Biometric not available
-                findPreference<SwitchPreferenceCompat>("app_lock")?.isEnabled = false
-                findPreference<SwitchPreferenceCompat>("app_lock")?.summary = "Отпечаток недоступен на этом устройстве"
-            }
-        }
-
-        private fun setupProfilePreference() {
-            val accountPref = findPreference<Preference>("account_info")
-            accountPref?.setOnPreferenceClickListener {
-                showEditProfileDialog()
-                true
-            }
-
-            val phonePref = findPreference<Preference>("phone_number")
-            phonePref?.setOnPreferenceClickListener {
-                showEditPhoneDialog()
-                true
-            }
-
-            // Load current user data
-            lifecycleScope.launch {
-                try {
-                    val uid = repository?.currentUser?.uid
-                    if (uid != null) {
-                        val result = repository?.getUserProfile(uid)
-                        result?.fold(
-                            onSuccess = { user ->
-                                accountPref?.summary = "${user.username}\n${user.email}"
-                                phonePref?.summary = if (user.phoneNumber.isNotEmpty()) user.phoneNumber else "Не указан"
-                            },
-                            onFailure = { e ->
-                                Log.e("SettingsFragment", "Failed to load profile", e)
-                            }
-                        )
-                    }
-                } catch (e: Exception) {
-                    Log.e("SettingsFragment", "Error loading profile", e)
+    private fun showPrivacyDialog() {
+        val settings = repository.preferencesManager.settings.value
+        val items = arrayOf("Показывать статус онлайн", "Блокировка приложения")
+        val checked = booleanArrayOf(settings.showOnlineStatus, settings.appLockEnabled)
+        AlertDialog.Builder(this)
+            .setTitle("Приватность")
+            .setMultiChoiceItems(items, checked) { _, which, isChecked ->
+                when (which) {
+                    0 -> repository.preferencesManager.updateOnlineStatus(isChecked)
+                    1 -> repository.preferencesManager.updateAppLock(isChecked)
                 }
             }
-        }
+            .setPositiveButton("OK", null)
+            .show()
+    }
 
-        private fun showEditProfileDialog() {
-            val dialogView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.dialog_edit_profile, null)
+    private fun showThemeDialog() {
+        val items = arrayOf("Светлая тема", "Тёмная тема", "Системная")
+        AlertDialog.Builder(this)
+            .setTitle("Тема оформления")
+            .setSingleChoiceItems(items, repository.preferencesManager.settings.value.theme) { _, which ->
+                repository.preferencesManager.updateTheme(which)
+            }
+            .setPositiveButton("OK", null)
+            .show()
+    }
 
-            val etUsername = dialogView.findViewById<EditText>(R.id.etUsername)
-            val etBio = dialogView.findViewById<EditText>(R.id.etBio)
-
-            // Load current data
-            lifecycleScope.launch {
-                val uid = repository?.currentUser?.uid
-                if (uid != null) {
-                    val result = repository?.getUserProfile(uid)
-                    result?.fold(
-                        onSuccess = { user ->
-                            etUsername.setText(user.username)
-                            etBio.setText(user.bio)
-                        },
-                        onFailure = {}
-                    )
+    private fun showNotificationsDialog() {
+        val settings = repository.preferencesManager.settings.value
+        val items = arrayOf("Уведомления", "Озвучивать имя звонящего")
+        val checked = booleanArrayOf(settings.notificationsEnabled, settings.announceCallerName)
+        AlertDialog.Builder(this)
+            .setTitle("Уведомления")
+            .setMultiChoiceItems(items, checked) { _, which, isChecked ->
+                when (which) {
+                    0 -> repository.preferencesManager.updateNotifications(isChecked)
+                    1 -> repository.preferencesManager.updateAnnounceCaller(isChecked)
                 }
             }
+            .setPositiveButton("OK", null)
+            .show()
+    }
 
-            AlertDialog.Builder(requireContext())
-                .setTitle("Редактировать профиль")
-                .setView(dialogView)
-                .setPositiveButton("Сохранить") { _, _ ->
-                    val username = etUsername.text.toString().trim()
-                    val bio = etBio.text.toString().trim()
-
-                    if (username.isEmpty()) {
-                        Toast.makeText(requireContext(), "Имя не может быть пустым", Toast.LENGTH_SHORT).show()
-                        return@setPositiveButton
-                    }
-
-                    lifecycleScope.launch {
-                        val result = repository?.updateUserProfile(username = username, bio = bio)
-                        result?.fold(
-                            onSuccess = {
-                                Toast.makeText(requireContext(), "Профиль обновлён", Toast.LENGTH_SHORT).show()
-                                // Update summary
-                                findPreference<Preference>("account_info")?.summary = "$username\n${repository?.currentUser?.email}"
-                            },
-                            onFailure = { e ->
-                                Toast.makeText(requireContext(), "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
-                }
-                .setNegativeButton("Отмена", null)
-                .show()
-        }
-
-        private fun showEditPhoneDialog() {
-            val dialogView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.dialog_edit_phone, null)
-
-            val etPhone = dialogView.findViewById<EditText>(R.id.etPhone)
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("Изменить номер телефона")
-                .setView(dialogView)
-                .setPositiveButton("Сохранить") { _, _ ->
-                    val phone = etPhone.text.toString().trim()
-                    if (phone.length < 10) {
-                        Toast.makeText(requireContext(), "Введите корректный номер", Toast.LENGTH_SHORT).show()
-                        return@setPositiveButton
-                    }
-                    // Phone is stored in User model but not easily changeable in Firebase
-                    // For now just show success
-                    Toast.makeText(requireContext(), "Номер обновлён", Toast.LENGTH_SHORT).show()
-                    findPreference<Preference>("phone_number")?.summary = phone
-                }
-                .setNegativeButton("Отмена", null)
-                .show()
-        }
-
-        private fun setupPreferences() {
-            // Fingerprint lock
-            val appLockPref = findPreference<SwitchPreferenceCompat>("app_lock")
-            appLockPref?.setOnPreferenceChangeListener { _, newValue ->
-                if (newValue == true) {
-                    biometricPrompt?.authenticate(promptInfo!!)
-                    true // Will be reset in callback if auth fails
-                } else {
-                    repository?.preferencesManager?.setFingerprintEnabled(false)
-                    true
-                }
+    private fun showBatteryDialog() {
+        val items = arrayOf("Выключен", "Всегда включён", "При заряде < 30%")
+        AlertDialog.Builder(this)
+            .setTitle("Экономия энергии")
+            .setSingleChoiceItems(items, repository.preferencesManager.settings.value.batterySaverMode) { _, which ->
+                repository.preferencesManager.updateBatterySaverMode(which)
             }
-
-            // VPN Detection
-            val vpnPref = findPreference<Preference>("vpn_detection")
-            vpnPref?.setOnPreferenceClickListener {
-                showVpnDialog()
-                true
-            }
-
-            // Premium
-            val premiumPref = findPreference<Preference>("premium")
-            premiumPref?.setOnPreferenceClickListener {
-                (activity as? SettingsActivity)?.showPremiumDialog()
-                true
-            }
-        }
-
-        private fun showVpnDialog() {
-            val isVpnActive = checkVpnStatus()
-            val message = if (isVpnActive) {
-                "Обнаружено активное VPN соединение!\n\nВаш IP адрес скрыт."
-            } else {
-                "VPN соединение не обнаружено.\n\nВаш IP адрес виден."
-            }
-
-            AlertDialog.Builder(requireContext())
-                .setTitle("Статус VPN")
-                .setMessage(message)
-                .setPositiveButton("OK", null)
-                .show()
-        }
-
-        private fun checkVpnStatus(): Boolean {
-            try {
-                val networkInterfaces = java.net.NetworkInterface.getNetworkInterfaces()
-                while (networkInterfaces.hasMoreElements()) {
-                    val networkInterface = networkInterfaces.nextElement()
-                    val name = networkInterface.name
-                    if (name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("pptp")) {
-                        return true
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("SettingsFragment", "Error checking VPN", e)
-            }
-            return false
-        }
-
-        override fun onPreferenceTreeClick(preference: Preference): Boolean {
-            return super.onPreferenceTreeClick(preference)
-        }
+            .setMessage("В режиме экономии отключаются анимации.")
+            .setPositiveButton("OK", null)
+            .show()
     }
 }
