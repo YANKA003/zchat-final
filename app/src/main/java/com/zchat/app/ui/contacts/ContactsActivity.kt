@@ -1,148 +1,195 @@
 package com.zchat.app.ui.contacts
 
+import android.Manifest
+import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.view.View
-import androidx.appcompat.app.AlertDialog
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
 import com.zchat.app.data.model.Contact
 import com.zchat.app.databinding.ActivityContactsBinding
-import com.zchat.app.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 
 class ContactsActivity : AppCompatActivity() {
-    
     private lateinit var binding: ActivityContactsBinding
     private lateinit var repository: Repository
     private lateinit var adapter: ContactsAdapter
-    
+    private val CONTACTS_PERMISSION = 100
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.init(applicationContext)
-        applyThemeColors()
-        
         super.onCreate(savedInstanceState)
         binding = ActivityContactsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         repository = Repository(applicationContext)
-        
-        binding.toolbar.setNavigationOnClickListener { finish() }
-        
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.contacts)
+
+        setupRecyclerView()
+        setupSearch()
+        loadContacts()
+
+        binding.fabImport.setOnClickListener { checkContactsPermission() }
+    }
+
+    private fun setupRecyclerView() {
         adapter = ContactsAdapter(
-            onContactClick = { contact -> openContact(contact) },
-            onEditClick = { contact -> editContact(contact) },
-            onBlockClick = { contact -> toggleBlock(contact) }
+            onEdit = { contact -> showEditDialog(contact) },
+            onDelete = { contact -> deleteContact(contact) }
         )
         binding.rvContacts.layoutManager = LinearLayoutManager(this)
         binding.rvContacts.adapter = adapter
-        
-        loadContacts()
     }
-    
+
+    private fun setupSearch() {
+        binding.etSearch.addTextChangedListener { text ->
+            searchContacts(text?.toString() ?: "")
+        }
+    }
+
     private fun loadContacts() {
-        binding.emptyState.visibility = View.GONE
-        
+        binding.progressBar.visibility = View.VISIBLE
+
         lifecycleScope.launch {
-            // Demo данные
-            val contacts = createDemoContacts()
-            
-            if (contacts.isEmpty()) {
-                binding.emptyState.visibility = View.VISIBLE
-            } else {
-                adapter.submitList(contacts)
-            }
+            val contacts = repository.getLocalContacts()
+            binding.progressBar.visibility = View.GONE
+
+            adapter.submitList(contacts)
+            binding.tvEmpty.visibility = if (contacts.isEmpty()) View.VISIBLE else View.GONE
         }
     }
-    
-    private fun createDemoContacts(): List<Contact> {
-        val uid = repository.currentUser?.uid ?: ""
-        return listOf(
-            Contact(
-                id = "c1",
-                userId = uid,
-                contactUserId = "user1",
-                displayName = "Анна Иванова",
-                phoneNumber = "+375291234567",
-                isAllowed = true
-            ),
-            Contact(
-                id = "c2",
-                userId = uid,
-                contactUserId = "user2",
-                displayName = "Петр Петров",
-                phoneNumber = "+375292345678",
-                isAllowed = true
-            ),
-            Contact(
-                id = "c3",
-                userId = uid,
-                contactUserId = "user3",
-                displayName = "Мария Сидорова",
-                phoneNumber = "+375293456789",
-                isBlocked = true
+
+    private fun searchContacts(query: String) {
+        lifecycleScope.launch {
+            val contacts = repository.searchContactsLocal(query)
+            adapter.submitList(contacts)
+        }
+    }
+
+    private fun checkContactsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                CONTACTS_PERMISSION
             )
-        )
-    }
-    
-    private fun openContact(contact: Contact) {
-        // Открыть чат с контактом
-    }
-    
-    private fun editContact(contact: Contact) {
-        val input = android.widget.EditText(this).apply {
-            setText(contact.displayName)
-            setSingleLine()
+        } else {
+            importPhoneContacts()
         }
-        
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CONTACTS_PERMISSION && grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            importPhoneContacts()
+        }
+    }
+
+    private fun importPhoneContacts() {
+        binding.progressBar.visibility = View.VISIBLE
+
+        val contactsList = mutableListOf<Contact>()
+
+        try {
+            val cursor = contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                null, null, null,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+            )
+
+            cursor?.use {
+                val idIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val phoneIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+                while (it.moveToNext()) {
+                    val id = it.getString(idIndex)
+                    val name = it.getString(nameIndex)
+                    val phone = it.getString(phoneIndex)
+
+                    val contact = Contact(
+                        id = id,
+                        userId = "",
+                        displayName = name,
+                        phoneNumber = phone.replace("\\s".toRegex(), ""),
+                        isRegistered = false
+                    )
+                    contactsList.add(contact)
+                }
+            }
+
+            lifecycleScope.launch {
+                repository.saveContacts(contactsList)
+                binding.progressBar.visibility = View.GONE
+                Toast.makeText(
+                    this@ContactsActivity,
+                    getString(R.string.contacts_imported) + ": ${contactsList.size}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                loadContacts()
+            }
+        } catch (e: Exception) {
+            binding.progressBar.visibility = View.GONE
+            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showEditDialog(contact: Contact) {
+        val input = EditText(this).apply {
+            setText(contact.displayName)
+        }
+
         AlertDialog.Builder(this)
             .setTitle(R.string.edit_contact)
             .setView(input)
             .setPositiveButton(R.string.save) { _, _ ->
                 val newName = input.text.toString().trim()
                 if (newName.isNotEmpty()) {
-                    updateContactName(contact, newName)
+                    val updated = contact.copy(displayName = newName)
+                    lifecycleScope.launch {
+                        repository.updateContact(updated)
+                        loadContacts()
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
-    
-    private fun updateContactName(contact: Contact, newName: String) {
-        lifecycleScope.launch {
-            // Обновить имя контакта
-            loadContacts()
-        }
-    }
-    
-    private fun toggleBlock(contact: Contact) {
-        val messageId = if (contact.isBlocked) {
-            R.string.unblock_contact_confirm
-        } else {
-            R.string.block_contact_confirm
-        }
-        
+
+    private fun deleteContact(contact: Contact) {
         AlertDialog.Builder(this)
-            .setTitle(if (contact.isBlocked) R.string.unblock else R.string.block)
-            .setMessage(messageId)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                performBlock(contact, !contact.isBlocked)
+            .setTitle(R.string.delete_contact)
+            .setMessage("Are you sure?")
+            .setPositiveButton(R.string.delete) { _, _ ->
+                lifecycleScope.launch {
+                    repository.deleteContact(contact)
+                    loadContacts()
+                }
             }
-            .setNegativeButton(R.string.no, null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
-    
-    private fun performBlock(contact: Contact, block: Boolean) {
-        lifecycleScope.launch {
-            // Заблокировать/разблокировать
-            loadContacts()
-        }
-    }
-    
-    private fun applyThemeColors() {
-        val colors = ThemeManager.getColors()
-        window.statusBarColor = colors.primaryDark.toColorInt()
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }

@@ -1,49 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary colors -->
-    <color name="primary">#6366F1</color>
-    <color name="primary_dark">#4F46E5</color>
-    <color name="primary_light">#818CF8</color>
-    <color name="secondary">#8B5CF6</color>
-    <color name="accent">#06B6D4</color>
-    
-    <!-- Background colors -->
-    <color name="background">#F8FAFC</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="surface_light">#F1F5F9</color>
-    <color name="surface_variant">#E2E8F0</color>
-    
-    <!-- Text colors - DARK text for LIGHT backgrounds -->
-    <color name="text_primary">#1E293B</color>
-    <color name="text_secondary">#64748B</color>
-    <color name="text_tertiary">#94A3B8</color>
-    <color name="text_inverse">#FFFFFF</color>
-    
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
     <!-- Message colors -->
-    <color name="message_sent">#6366F1</color>
-    <color name="message_sent_text">#FFFFFF</color>
-    <color name="message_received">#E2E8F0</color>
-    <color name="message_received_text">#1E293B</color>
-    
-    <!-- Status colors -->
-    <color name="online">#22C55E</color>
-    <color name="offline">#94A3B8</color>
-    <color name="error">#EF4444</color>
-    <color name="warning">#F59E0B</color>
-    <color name="success">#10B981</color>
-    
-    <!-- UI colors -->
-    <color name="divider">#E2E8F0</color>
-    <color name="ripple">#1E1E1E1E</color>
-    <color name="overlay">#80000000</color>
-    
-    <!-- Neon design colors -->
-    <color name="neon_purple">#6C5CE7</color>
-    <color name="neon_blue">#A29BFE</color>
-    
-    <!-- Child design colors (Drawn by a child) -->
-    <color name="child_blue">#5DADE2</color>
-    <color name="child_purple">#AF7AC5</color>
-    <color name="child_yellow">#F4D03F</color>
-    <color name="child_paper">#FEF9E7</color>
+    <color name="message_sent">#6200EE</color>
+    <color name="message_received">#E8E8E8</color>
+
+    <!-- Theme Classic -->
+    <color name="classic_primary">#6200EE</color>
+    <color name="classic_secondary">#3700B3</color>
+    <color name="classic_background">#FFFFFF</color>
+
+    <!-- Theme Modern -->
+    <color name="modern_primary">#2196F3</color>
+    <color name="modern_secondary">#1976D2</color>
+    <color name="modern_background">#F5F5F5</color>
+
+    <!-- Theme Neon -->
+    <color name="neon_primary">#00E676</color>
+    <color name="neon_secondary">#00C853</color>
+    <color name="neon_background">#1A1A1A</color>
+
+    <!-- Theme Childish -->
+    <color name="childish_primary">#FF9800</color>
+    <color name="childish_secondary">#F57C00</color>
+    <color name="childish_background">#FFF8E1</color>
 </resources>

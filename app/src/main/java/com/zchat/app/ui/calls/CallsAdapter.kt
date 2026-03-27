@@ -1,102 +1,84 @@
 package com.zchat.app.ui.calls
 
-import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.zchat.app.R
 import com.zchat.app.data.model.Call
 import com.zchat.app.databinding.ItemCallBinding
-import com.zchat.app.ui.theme.ThemeManager
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CallsAdapter(
-    private val currentUserId: String
-) : ListAdapter<Call, CallsAdapter.CallViewHolder>(DiffCallback()) {
-    
-    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
-    
+class CallsAdapter(private val onCallClick: (Call) -> Unit) :
+    ListAdapter<Call, CallsAdapter.CallViewHolder>(CallDiffCallback()) {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CallViewHolder {
         val binding = ItemCallBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return CallViewHolder(binding)
     }
-    
+
     override fun onBindViewHolder(holder: CallViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
-    
-    inner class CallViewHolder(private val binding: ItemCallBinding) : RecyclerView.ViewHolder(binding.root) {
-        
+
+    inner class CallViewHolder(private val binding: ItemCallBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
         fun bind(call: Call) {
-            val isIncoming = call.isIncoming(currentUserId)
-            val isMissed = call.isMissed()
-            
-            // Имя собеседника
-            val name = if (isIncoming) call.callerName else call.receiverName
-            binding.tvName.text = name
-            
-            // Тип звонка
-            val typeText = if (call.type == "VIDEO") "📹" else "📞"
-            
-            // Статус и направление
-            val statusIcon = when {
-                isMissed -> "❌"
-                isIncoming -> "📥"
-                else -> "📤"
+            val context = binding.root.context
+
+            // Caller name
+            binding.tvName.text = call.callerName.ifEmpty { context.getString(R.string.unknown) }
+
+            // Avatar first letter
+            val firstLetter = call.callerName.takeIf { it.isNotEmpty() }?.first()?.uppercase() ?: "?"
+            binding.tvAvatar.text = firstLetter
+
+            // Call type icon
+            when (call.type) {
+                "VIDEO" -> binding.ivCallType.setImageResource(R.drawable.ic_video)
+                else -> binding.ivCallType.setImageResource(R.drawable.ic_phone)
             }
-            
-            // Время звонка (по минскому времени UTC+3)
-            val minskTime = call.timestamp + (3 * 60 * 60 * 1000)
-            val date = Date(minskTime)
-            val now = Date()
-            val isToday = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(date) == 
-                          SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(now)
-            
-            val timeText = if (isToday) {
-                timeFormat.format(date)
-            } else {
-                "${dateFormat.format(date)}, ${timeFormat.format(date)}"
+
+            // Call status
+            val statusText = when (call.status) {
+                "INCOMING" -> context.getString(R.string.incoming_call)
+                "OUTGOING" -> context.getString(R.string.outgoing_call)
+                "MISSED" -> context.getString(R.string.missed_call)
+                else -> context.getString(R.string.call_ended)
             }
-            
-            // Длительность
-            val durationText = if (call.duration > 0) {
+
+            // Time in Minsk timezone (UTC+3)
+            val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+            sdf.timeZone = TimeZone.getTimeZone("Europe/Minsk")
+            val timeStr = sdf.format(Date(call.timestamp))
+
+            binding.tvStatus.text = "$statusText • $timeStr"
+
+            // Duration
+            if (call.duration > 0) {
                 val minutes = call.duration / 60
                 val seconds = call.duration % 60
-                "($minutes:${String.format("%02d", seconds)})"
+                binding.tvDuration.text = String.format("%02d:%02d", minutes, seconds)
+                binding.tvDuration.visibility = android.view.View.VISIBLE
             } else {
-                ""
+                binding.tvDuration.visibility = android.view.View.GONE
             }
-            
-            binding.tvTime.text = "$statusIcon $timeText $durationText"
-            
-            // Цвет для пропущенных
-            val colors = ThemeManager.getColors()
-            if (isMissed) {
-                binding.tvName.setTextColor("#EF4444".toColorInt())
-                binding.tvTime.setTextColor("#EF4444".toColorInt())
+
+            // Color for missed calls
+            if (call.status == "MISSED") {
+                binding.tvStatus.setTextColor(context.getColor(android.R.color.holo_red_dark))
             } else {
-                binding.tvName.setTextColor(colors.textPrimary.toColorInt())
-                binding.tvTime.setTextColor(colors.textSecondary.toColorInt())
+                binding.tvStatus.setTextColor(context.getColor(android.R.color.darker_gray))
             }
-            
-            // Тип звонка
-            binding.tvCallType.text = typeText
-            
-            // Аватар
-            val avatarBg = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(colors.primary.toColorInt())
-            }
-            binding.ivAvatar.background = avatarBg
+
+            binding.root.setOnClickListener { onCallClick(call) }
         }
     }
-    
-    class DiffCallback : DiffUtil.ItemCallback<Call>() {
+
+    class CallDiffCallback : DiffUtil.ItemCallback<Call>() {
         override fun areItemsTheSame(oldItem: Call, newItem: Call) = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: Call, newItem: Call) = oldItem == newItem
     }

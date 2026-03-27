@@ -1,189 +1,159 @@
 package com.zchat.app.ui.channels
 
+import android.app.AlertDialog
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
 import com.zchat.app.data.model.Channel
 import com.zchat.app.databinding.ActivityChannelsBinding
-import com.zchat.app.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 import java.util.*
 
 class ChannelsActivity : AppCompatActivity() {
-    
     private lateinit var binding: ActivityChannelsBinding
     private lateinit var repository: Repository
     private lateinit var adapter: ChannelsAdapter
-    private var isPremiumUser = false
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.init(applicationContext)
-        applyThemeColors()
-        
         super.onCreate(savedInstanceState)
         binding = ActivityChannelsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         repository = Repository(applicationContext)
-        
-        isPremiumUser = repository.preferencesManager.settings.value.premiumEnabled
-        
-        binding.toolbar.setNavigationOnClickListener { finish() }
-        
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.channels)
+
+        setupRecyclerView()
+        setupSearch()
+        loadChannels()
+
+        binding.fabCreateChannel.setOnClickListener { showCreateChannelDialog() }
+    }
+
+    private fun setupRecyclerView() {
         adapter = ChannelsAdapter(
-            currentUserId = repository.currentUser?.uid ?: "",
-            onChannelClick = { channel -> openChannel(channel) },
-            onSubscribeClick = { channel -> toggleSubscription(channel) }
+            currentUserId = repository.currentUserId ?: "",
+            onSubscribe = { channel -> subscribeToChannel(channel) }
         )
         binding.rvChannels.layoutManager = LinearLayoutManager(this)
         binding.rvChannels.adapter = adapter
-        
-        // Поиск каналов (только для Premium)
-        if (isPremiumUser) {
-            binding.searchLayout.visibility = View.VISIBLE
-            binding.etSearch.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: Editable?) {
-                    searchChannels(s?.toString() ?: "")
-                }
-            })
-        } else {
-            binding.searchLayout.visibility = View.GONE
-        }
-        
-        // Создание канала
-        binding.fabCreateChannel.setOnClickListener {
-            showCreateChannelDialog()
-        }
-        
-        loadChannels()
     }
-    
+
+    private fun setupSearch() {
+        binding.etSearch.addTextChangedListener { text ->
+            searchChannels(text?.toString() ?: "")
+        }
+    }
+
     private fun loadChannels() {
-        binding.emptyState.visibility = View.GONE
-        
+        binding.progressBar.visibility = View.VISIBLE
+
         lifecycleScope.launch {
-            // Demo данные
-            val channels = createDemoChannels()
-            
-            if (channels.isEmpty()) {
-                binding.emptyState.visibility = View.VISIBLE
-                binding.btnCreateFirstChannel.setOnClickListener {
-                    showCreateChannelDialog()
+            val result = repository.searchChannels("")
+            binding.progressBar.visibility = View.GONE
+
+            result.fold(
+                onSuccess = { channels ->
+                    adapter.submitList(channels)
+                    binding.tvEmpty.visibility = if (channels.isEmpty()) View.VISIBLE else View.GONE
+                },
+                onFailure = { e ->
+                    Toast.makeText(this@ChannelsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                adapter.submitList(channels)
-            }
+            )
         }
     }
-    
+
     private fun searchChannels(query: String) {
         lifecycleScope.launch {
-            val channels = createDemoChannels()
-            val filtered = if (query.isEmpty()) {
-                channels
-            } else {
-                channels.filter { 
-                    it.name.contains(query, ignoreCase = true) || 
-                    it.description.contains(query, ignoreCase = true) 
-                }
-            }
-            adapter.submitList(filtered)
-        }
-    }
-    
-    private fun createDemoChannels(): List<Channel> {
-        return listOf(
-            Channel(
-                id = "ch1",
-                name = "Tech News",
-                description = "Последние новости технологий",
-                ownerId = "user1",
-                ownerName = "Tech Team",
-                subscribersCount = 15234,
-                createdAt = System.currentTimeMillis() - 100000000,
-                category = "technology"
-            ),
-            Channel(
-                id = "ch2",
-                name = "Cooking Recipes",
-                description = "Лучшие рецепты со всего мира",
-                ownerId = "user2",
-                ownerName = "Chef Anna",
-                subscribersCount = 8562,
-                createdAt = System.currentTimeMillis() - 200000000,
-                category = "food"
-            ),
-            Channel(
-                id = "ch3",
-                name = "Travel Tips",
-                description = "Советы путешественникам",
-                ownerId = "user3",
-                ownerName = "Travel Master",
-                subscribersCount = 23041,
-                createdAt = System.currentTimeMillis() - 50000000,
-                category = "travel"
+            val result = repository.searchChannels(query)
+            result.fold(
+                onSuccess = { channels -> adapter.submitList(channels) },
+                onFailure = {}
             )
-        )
-    }
-    
-    private fun openChannel(channel: Channel) {
-        // Открыть канал - показать информацию
-        AlertDialog.Builder(this)
-            .setTitle(channel.name)
-            .setMessage(channel.description + "\n\nПодписчиков: ${channel.subscribersCount}")
-            .setPositiveButton("OK", null)
-            .show()
-    }
-    
-    private fun toggleSubscription(channel: Channel) {
-        // Подписаться/отписаться
-    }
-    
-    private fun showCreateChannelDialog() {
-        val input = EditText(this).apply {
-            hint = getString(R.string.channel_name)
-            setSingleLine()
         }
-        
+    }
+
+    private fun showCreateChannelDialog() {
+        val view = layoutInflater.inflate(android.R.layout.simple_list_item_1, null)
+        val nameInput = EditText(this).apply {
+            hint = getString(R.string.channel_name)
+        }
+        val descInput = EditText(this).apply {
+            hint = getString(R.string.channel_description)
+        }
+
+        val layout = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+            addView(nameInput)
+            addView(descInput)
+        }
+
         AlertDialog.Builder(this)
             .setTitle(R.string.create_channel)
-            .setView(input)
+            .setView(layout)
             .setPositiveButton(R.string.create) { _, _ ->
-                val name = input.text.toString().trim()
+                val name = nameInput.text.toString().trim()
+                val desc = descInput.text.toString().trim()
+
                 if (name.isNotEmpty()) {
-                    createChannel(name)
+                    createChannel(name, desc)
+                } else {
+                    Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
-    
-    private fun createChannel(name: String) {
+
+    private fun createChannel(name: String, description: String) {
+        val channel = Channel(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            description = description,
+            ownerId = repository.currentUserId ?: return
+        )
+
         lifecycleScope.launch {
-            val channel = Channel(
-                id = UUID.randomUUID().toString(),
-                name = name,
-                description = "",
-                ownerId = repository.currentUser?.uid ?: "",
-                ownerName = repository.currentUser?.displayName ?: "",
-                createdAt = System.currentTimeMillis()
+            val result = repository.createChannel(channel)
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(this@ChannelsActivity, R.string.success, Toast.LENGTH_SHORT).show()
+                    loadChannels()
+                },
+                onFailure = { e ->
+                    Toast.makeText(this@ChannelsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             )
-            loadChannels()
         }
     }
-    
-    private fun applyThemeColors() {
-        val colors = ThemeManager.getColors()
-        window.statusBarColor = colors.primaryDark.toColorInt()
+
+    private fun subscribeToChannel(channel: Channel) {
+        lifecycleScope.launch {
+            val result = repository.subscribeToChannel(channel.id)
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(this@ChannelsActivity, R.string.success, Toast.LENGTH_SHORT).show()
+                },
+                onFailure = { e ->
+                    Toast.makeText(this@ChannelsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 }

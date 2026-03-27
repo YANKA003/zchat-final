@@ -1,22 +1,22 @@
 package com.zchat.app.ui.chats
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.drawable.GradientDrawable
+import android.app.AlertDialog
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
-import android.widget.PopupMenu
+import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.graphics.toColorInt
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
 import com.zchat.app.data.Repository
+import com.zchat.app.data.model.Message
+import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ActivityChatBinding
-import com.zchat.app.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
+import java.util.*
 
 class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
@@ -24,195 +24,176 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var adapter: MessagesAdapter
     private var userId: String? = null
     private var username: String? = null
+    private var otherUser: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.init(applicationContext)
-        applyThemeColors()
-        
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         repository = Repository(applicationContext)
+
         userId = intent.getStringExtra("userId")
         username = intent.getStringExtra("username")
-        
-        binding.tvTitle.text = username ?: "Чат"
-        binding.btnBack.setOnClickListener { saveDraftAndFinish() }
-        
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = username
+
+        setupRecyclerView()
+        observeMessages()
+        loadUserInfo()
+
+        binding.btnSend.setOnClickListener { sendMessage() }
+    }
+
+    private fun setupRecyclerView() {
         adapter = MessagesAdapter(
-            currentUserId = repository.currentUser?.uid ?: "",
-            onMessageLongClick = { message, view -> showMessageOptions(message, view) }
+            currentUserId = repository.currentUserId ?: "",
+            onMessageLongClick = { message -> show_message_options(message) }
         )
-        binding.rvMessages.layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
+        binding.rvMessages.layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = true
+        }
         binding.rvMessages.adapter = adapter
-        
-        binding.btnCall.setOnClickListener { Toast.makeText(this, "Голосовой звонок", Toast.LENGTH_SHORT).show() }
-        binding.btnVideoCall.setOnClickListener { Toast.makeText(this, "Видеозвонок", Toast.LENGTH_SHORT).show() }
-        
-        val currentUserId = repository.currentUser?.uid ?: return
-        val otherUserId = userId ?: return
-        
-        // Load draft if exists
-        loadDraft()
-        
-        lifecycleScope.launch {
-            repository.observeMessages(currentUserId, otherUserId).collect { messages ->
-                adapter.submitList(messages) { binding.rvMessages.scrollToPosition(messages.size - 1) }
-            }
-        }
-        
-        binding.btnSend.setOnClickListener {
-            val content = binding.etMessage.text.toString().trim()
-            if (content.isNotEmpty()) {
-                lifecycleScope.launch { repository.sendMessage(content, userId ?: return@launch) }
-                binding.etMessage.text?.clear()
-                // Clear draft after sending
-                repository.preferencesManager.clearDraft(otherUserId)
+    }
+
+    private fun observeMessages() {
+        userId?.let { uid ->
+            lifecycleScope.launch {
+                repository.observeMessages(uid).collect { messages ->
+                    adapter.submitList(messages)
+                    if (messages.isNotEmpty()) {
+                        binding.rvMessages.scrollToPosition(messages.size - 1)
+                    }
+                    binding.tvEmpty.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
+                }
             }
         }
     }
-    
-    override fun onPause() {
-        super.onPause()
-        // Save draft when leaving the chat
-        saveDraft()
-    }
-    
-    override fun onBackPressed() {
-        saveDraftAndFinish()
-    }
-    
-    private fun loadDraft() {
-        userId?.let { chatId ->
-            val draft = repository.preferencesManager.getDraft(chatId)
-            if (draft.isNotEmpty()) {
-                binding.etMessage.setText(draft)
-                binding.etMessage.setSelection(draft.length)
-            }
-        }
-    }
-    
-    private fun saveDraft() {
-        userId?.let { chatId ->
-            val draft = binding.etMessage.text.toString().trim()
-            if (draft.isNotEmpty()) {
-                repository.preferencesManager.saveDraft(chatId, draft)
-            } else {
-                repository.preferencesManager.clearDraft(chatId)
-            }
-        }
-    }
-    
-    private fun saveDraftAndFinish() {
-        saveDraft()
-        finish()
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        applyThemeColors()
-    }
-    
-    private fun applyThemeColors() {
-        val colors = ThemeManager.getColors()
-        window.statusBarColor = colors.primaryDark.toColorInt()
-        
-        if (::binding.isInitialized) {
-            // Кнопки звонков
-            val callBg = GradientDrawable().apply {
-                setColor(colors.primary.toColorInt())
-                cornerRadius = 24f
-            }
-            binding.btnCall.background = callBg.constantState?.newDrawable()?.mutate()
-            binding.btnVideoCall.background = callBg.constantState?.newDrawable()?.mutate()
-            
-            // Кнопка отправки
-            val sendBg = GradientDrawable().apply {
-                setColor(colors.primary.toColorInt())
-                cornerRadius = 24f
-            }
-            binding.btnSend.background = sendBg
-            
-            // Цвет статус индикатора
-            val statusBg = GradientDrawable().apply {
-                setColor(colors.onlineIndicator.toColorInt())
-                cornerRadius = 5f
-            }
-            binding.statusIndicator.background = statusBg
-            
-            // Цвета текста
-            binding.tvTitle.setTextColor(colors.textPrimary.toColorInt())
-            binding.tvStatus.setTextColor(colors.textSecondary.toColorInt())
-            binding.etMessage.setTextColor(colors.textPrimary.toColorInt())
-            binding.etMessage.setHintTextColor(colors.textSecondary.toColorInt())
-        }
-    }
-    
-    private fun showMessageOptions(message: com.zchat.app.data.model.Message, view: android.view.View) {
-        val popup = PopupMenu(this, view)
-        popup.menuInflater.inflate(R.menu.message_context_menu, popup.menu)
-        
-        popup.setOnMenuItemClickListener { item: MenuItem ->
-            when (item.itemId) {
-                R.id.action_edit -> editMessage(message)
-                R.id.action_delete -> deleteMessage(message)
-                R.id.action_copy -> copyMessage(message)
-            }
-            true
-        }
-        popup.show()
-    }
-    
-    private fun editMessage(message: com.zchat.app.data.model.Message) {
-        val input = android.widget.EditText(this).apply {
-            setText(message.content)
-            setSelection(message.content.length)
-            // Fix text color
-            setTextColor(resources.getColor(R.color.text_primary, theme))
-            setHintTextColor(resources.getColor(R.color.text_secondary, theme))
-        }
-        
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Редактировать сообщение")
-            .setView(input)
-            .setPositiveButton("Сохранить") { _, _ ->
-                val newContent = input.text.toString().trim()
-                if (newContent.isNotEmpty() && newContent != message.content) {
-                    lifecycleScope.launch {
-                        repository.editMessage(
-                            message.id,
-                            repository.currentUser?.uid ?: "",
-                            userId ?: "",
-                            newContent
-                        )
+
+    private fun loadUserInfo() {
+        userId?.let { uid ->
+            lifecycleScope.launch {
+                repository.observeUserStatus(uid).collect { user ->
+                    otherUser = user
+                    supportActionBar?.subtitle = if (user.isOnline) {
+                        getString(R.string.online)
+                    } else {
+                        if (user.lastSeen > 0) {
+                            val sdf = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                            "${getString(R.string.last_seen)}: ${sdf.format(Date(user.lastSeen))}"
+                        } else {
+                            getString(R.string.offline)
+                        }
                     }
                 }
             }
-            .setNegativeButton("Отмена", null)
-            .show()
+        }
     }
-    
-    private fun deleteMessage(message: com.zchat.app.data.model.Message) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Удалить сообщение")
-            .setMessage("Вы уверены, что хотите удалить это сообщение?")
-            .setPositiveButton("Удалить") { _, _ ->
-                lifecycleScope.launch {
-                    repository.deleteMessage(
-                        message.id,
-                        repository.currentUser?.uid ?: "",
-                        userId ?: ""
-                    )
+
+    private fun sendMessage() {
+        val content = binding.etMessage.text.toString().trim()
+        if (content.isEmpty() || userId == null) return
+
+        val message = Message(
+            id = UUID.randomUUID().toString(),
+            senderId = repository.currentUserId ?: return,
+            receiverId = userId!!,
+            content = content,
+            timestamp = System.currentTimeMillis()
+        )
+
+        lifecycleScope.launch {
+            repository.sendMessage(message)
+            binding.etMessage.text?.clear()
+        }
+    }
+
+    private fun show_message_options(message: Message) {
+        if (message.senderId != repository.currentUserId) return
+
+        val options = arrayOf(
+            getString(R.string.edit_message),
+            getString(R.string.delete_message),
+            getString(R.string.copy_message)
+        )
+
+        AlertDialog.Builder(this)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showEditDialog(message)
+                    1 -> deleteMessage(message)
+                    2 -> copyMessage(message)
                 }
             }
-            .setNegativeButton("Отмена", null)
             .show()
     }
-    
-    private fun copyMessage(message: com.zchat.app.data.model.Message) {
+
+    private fun showEditDialog(message: Message) {
+        val input = EditText(this).apply {
+            setText(message.content)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.edit_message)
+            .setView(input)
+            .setPositiveButton(R.string.save) { _, _ ->
+                val newContent = input.text.toString().trim()
+                if (newContent.isNotEmpty() && userId != null) {
+                    lifecycleScope.launch {
+                        repository.editMessage(message.id, userId!!, newContent)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteMessage(message: Message) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_message)
+            .setMessage("Are you sure?")
+            .setPositiveButton(R.string.delete) { _, _ ->
+                userId?.let { uid ->
+                    lifecycleScope.launch {
+                        repository.deleteMessage(message.id, uid)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun copyMessage(message: Message) {
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val clip = android.content.ClipData.newPlainText("message", message.content)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "Скопировано", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.chat_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.action_call -> {
+                // TODO: Start voice call
+                Toast.makeText(this, "Voice call feature coming soon", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_video -> {
+                // TODO: Start video call
+                Toast.makeText(this, "Video call feature coming soon", Toast.LENGTH_SHORT).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

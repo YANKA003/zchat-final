@@ -1,89 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GOODOK</string>
-    <string name="login">登录</string>
-    <string name="register">注册</string>
-    <string name="email">电子邮件</string>
-    <string name="password">密码</string>
-    <string name="username">用户名</string>
-    <string name="settings">设置</string>
-    <string name="premium">高级版</string>
-    <string name="logout">退出</string>
-    <string name="users">用户</string>
-    <string name="no_users">无用户</string>
-    <string name="online">在线</string>
-    <string name="offline">离线</string>
-    <string name="type_message">消息...</string>
-    <string name="send">发送</string>
-    <string name="no_messages">无消息</string>
-    
-    <!-- Registration -->
-    <string name="phone_number">电话号码</string>
-    <string name="select_language">语言</string>
-    <string name="select_design">选择设计</string>
-    <string name="no_account">没有账号？注册</string>
-    <string name="have_account">已有账号？登录</string>
-    
-    <!-- Settings -->
-    <string name="profile">个人资料</string>
-    <string name="account">账户</string>
-    <string name="privacy">隐私</string>
-    <string name="notifications">通知</string>
-    <string name="chat_settings">聊天设置</string>
-    <string name="language">应用语言</string>
-    <string name="design">设计</string>
-    <string name="call_recording">通话录音</string>
-    <string name="call_recording_desc">自动录制语音和视频通话</string>
-    <string name="set_status">设置状态</string>
-    <string name="change_photo">更换照片</string>
-    <string name="take_photo">拍照</string>
-    <string name="choose_from_gallery">从相册选择</string>
-    <string name="remove_photo">删除照片</string>
-    
-    <!-- Chats -->
     <string name="chats">聊天</string>
     <string name="calls">通话</string>
     <string name="channels">频道</string>
     <string name="contacts">联系人</string>
-    <string name="search">搜索</string>
-    <string name="new_chat">新聊天</string>
-    <string name="voice_call">语音通话</string>
-    <string name="video_call">视频通话</string>
-    
-    <!-- Messages -->
-    <string name="edit">编辑</string>
-    <string name="delete">删除</string>
-    <string name="copy">复制</string>
-    <string name="edited">(已编辑)</string>
+    <string name="settings">设置</string>
+    <string name="premium">高级版</string>
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="email">电子邮件</string>
+    <string name="password">密码</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="username">用户名</string>
+    <string name="phone_number">电话号码</string>
+    <string name="no_account">没有账户？</string>
+    <string name="has_account">已有账户？</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="type_message">输入消息…</string>
+    <string name="send">发送</string>
+    <string name="online">在线</string>
+    <string name="offline">离线</string>
+    <string name="last_seen">最后在线</string>
+    <string name="typing">正在输入…</string>
     <string name="edit_message">编辑消息</string>
     <string name="delete_message">删除消息</string>
-    <string name="delete_confirm">确定要删除此消息吗？</string>
-    <string name="copied">已复制</string>
+    <string name="copy_message">复制消息</string>
+    <string name="message_edited">已编辑</string>
+    <string name="message_deleted">消息已删除</string>
+    <string name="incoming_call">来电</string>
+    <string name="outgoing_call">去电</string>
+    <string name="missed_call">未接来电</string>
+    <string name="voice_call">语音通话</string>
+    <string name="video_call">视频通话</string>
+    <string name="call_ended">通话结束</string>
+    <string name="call_duration">通话时长</string>
+    <string name="no_call_history">暂无通话记录</string>
+    <string name="create_channel">创建频道</string>
+    <string name="channel_name">频道名称</string>
+    <string name="channel_description">描述</string>
+    <string name="search_channels">搜索频道</string>
+    <string name="subscribe">订阅</string>
+    <string name="unsubscribe">取消订阅</string>
+    <string name="subscribers">订阅者</string>
+    <string name="no_channels">暂无频道</string>
+    <string name="search_contacts">搜索联系人</string>
+    <string name="import_contacts">导入联系人</string>
+    <string name="edit_contact">编辑联系人</string>
+    <string name="delete_contact">删除联系人</string>
+    <string name="contact_name">联系人姓名</string>
+    <string name="no_contacts">暂无联系人</string>
+    <string name="contacts_imported">联系人已导入</string>
+    <string name="theme">主题</string>
+    <string name="language">语言</string>
+    <string name="notifications">通知</string>
+    <string name="privacy">隐私</string>
+    <string name="account">账户</string>
+    <string name="logout">退出登录</string>
+    <string name="design">设计</string>
+    <string name="theme_classic">经典</string>
+    <string name="theme_modern">现代</string>
+    <string name="theme_neon">霓虹</string>
+    <string name="theme_childish">儿童画风格</string>
+    <string name="premium_title">升级到高级版</string>
+    <string name="basic_plan">BASIC</string>
+    <string name="goodplan">GOODPLAN</string>
+    <string name="per_month">/月</string>
+    <string name="forever">永久</string>
+    <string name="basic_features">• 无广告\n• 更大文件上传\n• 优先支持</string>
+    <string name="goodplan_features">• 所有BASIC功能\n• 通话录音\n• 自动翻译\n• VPN检测</string>
+    <string name="subscribe_now">立即订阅</string>
+    <string name="restore_purchase">恢复购买</string>
     <string name="save">保存</string>
     <string name="cancel">取消</string>
-    
-    <!-- Premium -->
-    <string name="premium_title">⭐ GOODOK 高级版</string>
-    <string name="premium_features">自动翻译 • 自定义图标 • 专属功能</string>
-    <string name="premium_subscribe">订阅</string>
-    
-    <!-- Import contacts -->
-    <string name="importing_contacts">导入联系人...</string>
-    <string name="contacts_imported">联系人已导入</string>
-    <string name="searching_friends">正在您的联系人中查找朋友...</string>
-    
-    <!-- Designs -->
-    <string name="design_classic">设计 1: 经典</string>
-    <string name="design_modern">设计 2: 现代</string>
-    <string name="design_neon">设计 3: 霓虹</string>
-    <string name="design_child">儿童画风格</string>
-    
-    <!-- Misc -->
-    <string name="ok">确定</string>
-    <string name="yes">是</string>
-    <string name="no">否</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="search">搜索</string>
+    <string name="loading">加载中…</string>
     <string name="error">错误</string>
     <string name="success">成功</string>
-    <string name="loading">加载中...</string>
-    <string name="retry">重试</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="ok">确定</string>
+    <string name="lang_english_us">English (US)</string>
+    <string name="lang_english_uk">English (UK)</string>
+    <string name="lang_french">Français</string>
+    <string name="lang_spanish">Español</string>
+    <string name="lang_portuguese">Português</string>
+    <string name="lang_chinese">中文</string>
+    <string name="lang_belarusian">Беларуская</string>
+    <string name="lang_ukrainian">Українська</string>
+    <string name="lang_russian">Русский</string>
+    <string name="lang_german">Deutsch</string>
 </resources>

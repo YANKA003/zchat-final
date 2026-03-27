@@ -1,55 +1,29 @@
-# ZChat - Мессенджер
+# GOODOK Messenger
 
-Нативный Android мессенджер с Firebase.
+A modern messenger application with real-time messaging, voice/video calls, and premium features.
 
-## Быстрый старт
+## Features
 
-### 1. Создайте репозиторий на GitHub
+- **Real-time Messaging**: Send and receive messages instantly
+- **4 Design Themes**: Classic, Modern, Neon, Drawn by a child
+- **9 Languages**: English (US/UK), French, Spanish, Portuguese, Chinese, Belarusian, Ukrainian, Russian, German
+- **Calls History**: View your call history with Minsk timezone
+- **Channels**: Create and subscribe to channels
+- **Contacts**: Import and manage contacts
+- **Premium Plans**:
+  - BASIC ($2/month or $6 forever): No ads, larger file uploads, priority support
+  - GOODPLAN ($5/month or $15 forever): All BASIC features + call recording, auto-translate, VPN detection
 
-### 2. Загрузите все файлы из этого архива
+## Building
 
-### 3. Добавьте google-services.json
+1. Clone the repository
+2. Add your `google-services.json` file to `app/` directory
+3. Run `./gradlew assembleDebug`
 
-**ВАЖНО:** Скопируйте ваш `google-services.json` в папку `app/`
+## Tech Stack
 
-Структура должна быть:
-```
-app/
-├── google-services.json  <-- СЮДА!
-├── build.gradle
-├── src/
-│   └── main/
-│       ├── AndroidManifest.xml
-│       ├── java/
-│       └── res/
-├── build.gradle
-├── settings.gradle
-└── .github/
-    └── workflows/
-        └── build-apk.yml
-```
-
-### 4. Запустите сборку
-
-1. GitHub → Actions → "Build ZChat APK" → Run workflow
-2. Скачайте APK из Artifacts
-
-## Firebase настройки
-
-В Firebase Console должны быть включены:
-
-1. **Authentication** → Email/Password → **Включить**
-2. **Realtime Database** → Создать базу → Тестовый режим
-
-## Функции
-
-- ✅ Регистрация и вход
-- ✅ Список пользователей
-- ✅ Чаты
-- ✅ Настройки
-- ✅ Тёмная тема
-
-## Требования
-
-- Android 7.0+ (API 24)
-- Интернет соединение
+- Kotlin
+- Firebase Auth & Realtime Database
+- Room Database
+- Material Design Components
+- Coroutines & Flow

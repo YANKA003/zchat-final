@@ -1,17 +1,13 @@
 package com.zchat.app
 
 import android.app.Application
-import android.util.Log
-import com.google.firebase.FirebaseApp
+import com.zchat.app.util.LanguageHelper
 
 class ZChatApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        try {
-            FirebaseApp.initializeApp(this)
-            Log.d("ZChat", "Firebase initialized successfully")
-        } catch (e: Exception) {
-            Log.e("ZChat", "Firebase initialization failed", e)
-        }
+    override fun attachBaseContext(base: android.content.Context) {
+        val prefs = base.getSharedPreferences("goodok_prefs", android.content.Context.MODE_PRIVATE)
+        val language = prefs.getString("language", "en") ?: "en"
+        val context = LanguageHelper.setLocale(base, language)
+        super.attachBaseContext(context)
     }
 }

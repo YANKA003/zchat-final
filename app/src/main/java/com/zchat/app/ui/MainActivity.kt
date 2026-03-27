@@ -1,15 +1,10 @@
 package com.zchat.app.ui
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.ContactsContract
 import android.view.View
-import android.widget.*
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColorInt
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,245 +18,129 @@ import com.zchat.app.ui.channels.ChannelsActivity
 import com.zchat.app.ui.chats.ChatActivity
 import com.zchat.app.ui.contacts.ContactsActivity
 import com.zchat.app.ui.settings.SettingsActivity
-import com.zchat.app.ui.theme.ThemeManager
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var repository: Repository
     private lateinit var adapter: UsersAdapter
-    private var currentDesign = ThemeManager.DESIGN_CLASSIC
-    private val CONTACTS_PERMISSION_REQUEST = 100
-    
-    private var alternativeLayout: View? = null
+    private var currentTheme = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.init(applicationContext)
-        currentDesign = ThemeManager.getDesign()
-        
+        applyTheme()
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         repository = Repository(applicationContext)
-        
+
         if (repository.currentUser == null) {
             startActivity(Intent(this, AuthActivity::class.java))
             finish()
             return
         }
-        
-        when (currentDesign) {
-            ThemeManager.DESIGN_NEON -> setupNeonLayout()
-            ThemeManager.DESIGN_CHILD -> setupChildLayout()
-            else -> setupClassicLayout()
-        }
-        
-        adapter = UsersAdapter { user -> openChat(user) }
-        
-        val rvUsers = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvUsers)
-        rvUsers?.layoutManager = LinearLayoutManager(this)
-        rvUsers?.adapter = adapter
-        
-        applyThemeColors()
-        checkContactsPermissionAndLoad()
+
+        currentTheme = repository.theme
+
+        setupToolbar()
+        setupNavigation()
+        setupBottomNavigation()
+        setupUserList()
+        loadUsers()
     }
-    
-    private fun setupClassicLayout() {
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
+
+    private fun applyTheme() {
+        repository = Repository(applicationContext)
+        when (repository.theme) {
+            0 -> setTheme(R.style.Theme_GOODOK_Classic)
+            1 -> setTheme(R.style.Theme_GOODOK_Modern)
+            2 -> setTheme(R.style.Theme_GOODOK_Neon)
+            3 -> setTheme(R.style.Theme_GOODOK_Childish)
+        }
+    }
+
+    private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(android.R.drawable.ic_menu_manage)
-        binding.toolbar.setNavigationOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
-        
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(android.R.drawable.ic_menu_manage)
+        }
+        binding.toolbar.setNavigationOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun setupNavigation() {
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-                R.id.nav_premium -> { val i = Intent(this, SettingsActivity::class.java); i.putExtra("show_premium", true); startActivity(i) }
-                R.id.nav_logout -> { repository.logout(); startActivity(Intent(this, AuthActivity::class.java)); finish() }
+                R.id.nav_premium -> {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    intent.putExtra("show_premium", true)
+                    startActivity(intent)
+                }
+                R.id.nav_logout -> {
+                    repository.logout()
+                    startActivity(Intent(this, AuthActivity::class.java))
+                    finish()
+                }
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
     }
-    
-    private fun setupNeonLayout() {
-        alternativeLayout = layoutInflater.inflate(R.layout.activity_main_neon, null)
-        setContentView(alternativeLayout)
-        
-        findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-        
-        setupBottomNavigation()
-    }
-    
-    private fun setupChildLayout() {
-        alternativeLayout = layoutInflater.inflate(R.layout.activity_main_child, null)
-        setContentView(alternativeLayout)
-        
-        findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-        
-        setupBottomNavigation()
-    }
-    
+
     private fun setupBottomNavigation() {
-        findViewById<LinearLayout>(R.id.navChats)?.setOnClickListener {
-            // Уже на чатах
-        }
-        
-        findViewById<LinearLayout>(R.id.navCalls)?.setOnClickListener {
-            startActivity(Intent(this, CallsActivity::class.java))
-        }
-        
-        findViewById<LinearLayout>(R.id.navChannels)?.setOnClickListener {
-            startActivity(Intent(this, ChannelsActivity::class.java))
-        }
-        
-        findViewById<LinearLayout>(R.id.navContacts)?.setOnClickListener {
-            startActivity(Intent(this, ContactsActivity::class.java))
-        }
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        if (currentDesign != ThemeManager.getDesign()) {
-            recreate()
-        }
-    }
-    
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CONTACTS_PERMISSION_REQUEST) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadUsersFromContacts()
-            } else {
-                loadAllUsers()
-            }
-        }
-    }
-    
-    private fun applyThemeColors() {
-        val colors = ThemeManager.getColors()
-        window.statusBarColor = colors.primaryDark.toColorInt()
-        
-        if (currentDesign == ThemeManager.DESIGN_CLASSIC && ::binding.isInitialized) {
-            binding.toolbar.setBackgroundColor(colors.primary.toColorInt())
-            binding.toolbar.setTitleTextColor(colors.sentMessageText.toColorInt())
-        }
-    }
-    
-    private fun checkContactsPermissionAndLoad() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
-            == PackageManager.PERMISSION_GRANTED) {
-            loadUsersFromContacts()
-        } else {
-            requestPermissions(
-                arrayOf(Manifest.permission.READ_CONTACTS),
-                CONTACTS_PERMISSION_REQUEST
-            )
-        }
-    }
-    
-    private fun getPhoneContacts(): List<String> {
-        val phones = mutableListOf<String>()
-        try {
-            contentResolver.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-                null, null, null
-            )?.use { cursor ->
-                val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                while (cursor.moveToNext()) {
-                    val number = cursor.getString(numberIndex)
-                    val normalized = number.replace(Regex("[^0-9]"), "")
-                    if (normalized.length >= 10) {
-                        phones.add(normalized)
+        // Show bottom navigation for designs 3 and 4 (Neon and Childish)
+        if (currentTheme >= 2) {
+            binding.bottomNavigation.visibility = View.VISIBLE
+            binding.bottomNavigation.setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.nav_chats -> {
+                        // Already on chats
+                        true
                     }
+                    R.id.nav_calls -> {
+                        startActivity(Intent(this, CallsActivity::class.java))
+                        true
+                    }
+                    R.id.nav_channels -> {
+                        startActivity(Intent(this, ChannelsActivity::class.java))
+                        true
+                    }
+                    R.id.nav_contacts -> {
+                        startActivity(Intent(this, ContactsActivity::class.java))
+                        true
+                    }
+                    else -> false
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } else {
+            binding.bottomNavigation.visibility = View.GONE
         }
-        return phones.distinct()
     }
 
-    private fun loadUsersFromContacts() {
-        showLoading(true)
-        
-        val contactPhones = getPhoneContacts()
-        
-        lifecycleScope.launch {
-            val result = repository.searchUsers("")
-            showLoading(false)
-            
-            result.fold(
-                onSuccess = { allUsers ->
-                    val currentUid = repository.currentUser?.uid
-                    
-                    val contactsInApp = allUsers.filter { user ->
-                        user.uid != currentUid && 
-                        user.phoneNumber.isNotEmpty() &&
-                        contactPhones.any { contactPhone ->
-                            val userPhone = user.phoneNumber.replace(Regex("[^0-9]"), "")
-                            userPhone.length >= 10 && contactPhone.length >= 10 &&
-                            userPhone.takeLast(10) == contactPhone.takeLast(10)
-                        }
-                    }
-                    
-                    if (contactsInApp.isEmpty()) {
-                        showEmpty(getString(R.string.searching_friends))
-                        adapter.submitList(allUsers.filter { it.uid != currentUid })
-                    } else {
-                        adapter.submitList(contactsInApp)
-                        showEmpty(false)
-                    }
-                },
-                onFailure = { 
-                    Toast.makeText(this@MainActivity, "Ошибка: ${it.message}", Toast.LENGTH_SHORT).show()
-                    showEmpty("Ошибка загрузки")
-                }
-            )
-        }
+    private fun setupUserList() {
+        adapter = UsersAdapter { user -> openChat(user) }
+        binding.rvUsers.layoutManager = LinearLayoutManager(this)
+        binding.rvUsers.adapter = adapter
     }
-    
-    private fun loadAllUsers() {
-        showLoading(true)
-        
+
+    private fun loadUsers() {
+        binding.progressBar.visibility = View.VISIBLE
         lifecycleScope.launch {
             val result = repository.searchUsers("")
-            showLoading(false)
+            binding.progressBar.visibility = View.GONE
+
             result.fold(
                 onSuccess = { users ->
                     val filtered = users.filter { it.uid != repository.currentUser?.uid }
                     adapter.submitList(filtered)
-                    showEmpty(if (filtered.isEmpty()) "Пока нет других пользователей" else false)
+                    binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
                 },
-                onFailure = { 
-                    Toast.makeText(this@MainActivity, "Ошибка: ${it.message}", Toast.LENGTH_SHORT).show()
-                    showEmpty("Ошибка загрузки")
+                onFailure = { e ->
+                    Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             )
-        }
-    }
-    
-    private fun showLoading(show: Boolean) {
-        findViewById<ProgressBar>(R.id.progressBar)?.visibility = if (show) View.VISIBLE else View.GONE
-    }
-    
-    private fun showEmpty(message: Any) {
-        val emptyState = findViewById<LinearLayout>(R.id.emptyState)
-        val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
-        
-        when (message) {
-            is String -> {
-                tvEmpty?.text = message
-                emptyState?.visibility = View.VISIBLE
-            }
-            is Boolean -> {
-                emptyState?.visibility = if (message) View.VISIBLE else View.GONE
-            }
         }
     }
 
@@ -270,5 +149,19 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("userId", user.uid)
         intent.putExtra("username", user.username)
         startActivity(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        repository.setOnlineStatus(true)
+        // Reload if theme changed
+        if (currentTheme != repository.theme) {
+            recreate()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        repository.setOnlineStatus(false)
     }
 }

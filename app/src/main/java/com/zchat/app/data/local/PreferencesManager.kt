@@ -1,46 +1,80 @@
 package com.zchat.app.data.local
 
 import android.content.Context
-import android.content.SharedPreferences
-import com.google.gson.Gson
 import com.zchat.app.data.model.AppSettings
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 class PreferencesManager(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("goodok_prefs", Context.MODE_PRIVATE)
-    private val gson = Gson()
-    
-    private val _settings = MutableStateFlow(loadSettings())
-    val settings: StateFlow<AppSettings> = _settings
-    
-    private fun loadSettings(): AppSettings {
-        val json = prefs.getString("app_settings", null) ?: return AppSettings()
-        return try { gson.fromJson(json, AppSettings::class.java) } catch (e: Exception) { AppSettings() }
+    private val prefs = context.getSharedPreferences("goodok_prefs", Context.MODE_PRIVATE)
+
+    var currentUserId: String?
+        get() = prefs.getString("current_user_id", null)
+        set(value) = prefs.edit().putString("current_user_id", value).apply()
+
+    var currentUserEmail: String?
+        get() = prefs.getString("current_user_email", null)
+        set(value) = prefs.edit().putString("current_user_email", value).apply()
+
+    var currentUsername: String?
+        get() = prefs.getString("current_username", null)
+        set(value) = prefs.edit().putString("current_username", value).apply()
+
+    var theme: Int
+        get() = prefs.getInt("theme", 0)
+        set(value) = prefs.edit().putInt("theme", value).apply()
+
+    var language: String
+        get() = prefs.getString("language", "en") ?: "en"
+        set(value) = prefs.edit().putString("language", value).apply()
+
+    var showOnlineStatus: Boolean
+        get() = prefs.getBoolean("show_online_status", true)
+        set(value) = prefs.edit().putBoolean("show_online_status", value).apply()
+
+    var notificationsEnabled: Boolean
+        get() = prefs.getBoolean("notifications_enabled", true)
+        set(value) = prefs.edit().putBoolean("notifications_enabled", value).apply()
+
+    var autoTranslate: Boolean
+        get() = prefs.getBoolean("auto_translate", false)
+        set(value) = prefs.edit().putBoolean("auto_translate", value).apply()
+
+    var targetLanguage: String
+        get() = prefs.getString("target_language", "en") ?: "en"
+        set(value) = prefs.edit().putString("target_language", value).apply()
+
+    var isPremium: Boolean
+        get() = prefs.getBoolean("is_premium", false)
+        set(value) = prefs.edit().putBoolean("is_premium", value).apply()
+
+    var premiumType: String
+        get() = prefs.getString("premium_type", "") ?: ""
+        set(value) = prefs.edit().putString("premium_type", value).apply()
+
+    var premiumExpiry: Long
+        get() = prefs.getLong("premium_expiry", 0)
+        set(value) = prefs.edit().putLong("premium_expiry", value).apply()
+
+    fun getSettings(): AppSettings {
+        return AppSettings(
+            theme = theme,
+            language = language,
+            showOnlineStatus = showOnlineStatus,
+            notificationsEnabled = notificationsEnabled,
+            autoTranslate = autoTranslate,
+            targetLanguage = targetLanguage
+        )
     }
-    
-    fun updateSettings(newSettings: AppSettings) {
-        prefs.edit().putString("app_settings", gson.toJson(newSettings)).apply()
-        _settings.value = newSettings
+
+    fun saveSettings(settings: AppSettings) {
+        theme = settings.theme
+        language = settings.language
+        showOnlineStatus = settings.showOnlineStatus
+        notificationsEnabled = settings.notificationsEnabled
+        autoTranslate = settings.autoTranslate
+        targetLanguage = settings.targetLanguage
     }
-    
-    fun updateTheme(theme: Int) { updateSettings(_settings.value.copy(theme = theme)) }
-    fun updateDesignStyle(style: Int) { updateSettings(_settings.value.copy(designStyle = style)) }
-    fun updateAnimations(enabled: Boolean) { updateSettings(_settings.value.copy(enableAnimations = enabled)) }
-    fun updateOnlineStatus(show: Boolean) { updateSettings(_settings.value.copy(showOnlineStatus = show)) }
-    fun updateAppLock(enabled: Boolean) { updateSettings(_settings.value.copy(appLockEnabled = enabled)) }
-    fun updateAnnounceCaller(enabled: Boolean) { updateSettings(_settings.value.copy(announceCallerName = enabled)) }
-    fun updateNotifications(enabled: Boolean) { updateSettings(_settings.value.copy(notificationsEnabled = enabled)) }
-    fun updateBatterySaverMode(mode: Int) { updateSettings(_settings.value.copy(batterySaverMode = mode)) }
-    fun updatePremium(enabled: Boolean) { updateSettings(_settings.value.copy(premiumEnabled = enabled)) }
-    fun updateAutoTranslate(enabled: Boolean) { updateSettings(_settings.value.copy(autoTranslate = enabled)) }
-    fun updateLanguage(lang: String) { updateSettings(_settings.value.copy(language = lang)) }
-    
-    // Draft system for messages
-    fun saveDraft(chatId: String, draft: String) { prefs.edit().putString("draft_$chatId", draft).apply() }
-    fun getDraft(chatId: String): String = prefs.getString("draft_$chatId", "") ?: ""
-    fun clearDraft(chatId: String) { prefs.edit().remove("draft_$chatId").apply() }
-    
-    fun isCallRecordingEnabled(): Boolean = prefs.getBoolean("call_recording_enabled", true)
-    fun setCallRecordingEnabled(enabled: Boolean) { prefs.edit().putBoolean("call_recording_enabled", enabled).apply() }
+
+    fun clear() {
+        prefs.edit().clear().apply()
+    }
 }

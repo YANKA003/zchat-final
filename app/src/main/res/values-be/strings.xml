@@ -1,89 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GOODOK</string>
+    <string name="chats">Чаты</string>
+    <string name="calls">Выклікі</string>
+    <string name="channels">Каналы</string>
+    <string name="contacts">Кантакты</string>
+    <string name="settings">Налады</string>
+    <string name="premium">Прэміум</string>
     <string name="login">Увайсці</string>
     <string name="register">Рэгістрацыя</string>
     <string name="email">Электронная пошта</string>
     <string name="password">Пароль</string>
+    <string name="confirm_password">Пацвердзіць пароль</string>
     <string name="username">Імя карыстальніка</string>
-    <string name="settings">Налады</string>
-    <string name="premium">Premium</string>
-    <string name="logout">Выйсці</string>
-    <string name="users">Карыстальнікі</string>
-    <string name="no_users">Няма карыстальнікаў</string>
+    <string name="phone_number">Нумар тэлефона</string>
+    <string name="no_account">Няма акаўнта?</string>
+    <string name="has_account">Ужо ёсць акаўнт?</string>
+    <string name="forgot_password">Забылі пароль?</string>
+    <string name="type_message">Напішыце паведамленне…</string>
+    <string name="send">Адправіць</string>
     <string name="online">У сетцы</string>
     <string name="offline">Не ў сетцы</string>
-    <string name="type_message">Паведамленне...</string>
-    <string name="send">Адправіць</string>
-    <string name="no_messages">Няма паведамленняў</string>
-    
-    <!-- Registration -->
-    <string name="phone_number">Нумар тэлефона</string>
-    <string name="select_language">Мова</string>
-    <string name="select_design">Выбраць дызайн</string>
-    <string name="no_account">Няма акаўнта? Зарэгіструйцеся</string>
-    <string name="have_account">Ужо ёсць акаўнт? Увайдзіце</string>
-    
-    <!-- Settings -->
-    <string name="profile">Профіль</string>
-    <string name="account">Акаўнт</string>
-    <string name="privacy">Прыватнасць</string>
-    <string name="notifications">Паведамленні</string>
-    <string name="chat_settings">Налады чата</string>
-    <string name="language">Мова прыкладання</string>
-    <string name="design">Дызайн</string>
-    <string name="call_recording">Запіс званкоў</string>
-    <string name="call_recording_desc">Аўтазапіс галасавых і відэазванкоў</string>
-    <string name="set_status">Устанавіць статус</string>
-    <string name="change_photo">Змяніць фота</string>
-    <string name="take_photo">Зрабіць фота</string>
-    <string name="choose_from_gallery">Выбраць з галерэі</string>
-    <string name="remove_photo">Выдаліць фота</string>
-    
-    <!-- Chats -->
-    <string name="chats">Чаты</string>
-    <string name="calls">Званкі</string>
-    <string name="channels">Каналы</string>
-    <string name="contacts">Кантакты</string>
-    <string name="search">Пошук</string>
-    <string name="new_chat">Новы чат</string>
-    <string name="voice_call">Галасавы званок</string>
-    <string name="video_call">Відэазванок</string>
-    
-    <!-- Messages -->
-    <string name="edit">Рэдагаваць</string>
-    <string name="delete">Выдаліць</string>
-    <string name="copy">Капіраваць</string>
-    <string name="edited">(адрэдагавана)</string>
+    <string name="last_seen">Апошні раз у сетцы</string>
+    <string name="typing">Друкуе…</string>
     <string name="edit_message">Рэдагаваць паведамленне</string>
     <string name="delete_message">Выдаліць паведамленне</string>
-    <string name="delete_confirm">Вы ўпэўнены, што жадаеце выдаліць гэта паведамленне?</string>
-    <string name="copied">Скапіравана</string>
-    <string name="save">Захаваць</string>
-    <string name="cancel">Адмяніць</string>
-    
-    <!-- Premium -->
-    <string name="premium_title">⭐ GOODOK Premium</string>
-    <string name="premium_features">Аўтапераклад • Уласная іконка • Эксклюзіўныя функцыі</string>
-    <string name="premium_subscribe">Падпісацца</string>
-    
-    <!-- Import contacts -->
-    <string name="importing_contacts">Імпарт кантактаў...</string>
+    <string name="copy_message">Капіраваць паведамленне</string>
+    <string name="message_edited">Рэдагавана</string>
+    <string name="message_deleted">Паведамленне выдалена</string>
+    <string name="incoming_call">Уваходны выклік</string>
+    <string name="outgoing_call">Выходны выклік</string>
+    <string name="missed_call">Прапушчаны выклік</string>
+    <string name="voice_call">Галасавы выклік</string>
+    <string name="video_call">Відэавыклік</string>
+    <string name="call_ended">Выклік скончаны</string>
+    <string name="call_duration">Працягласць</string>
+    <string name="no_call_history">Няма гісторыі выклікаў</string>
+    <string name="create_channel">Стварыць канал</string>
+    <string name="channel_name">Назва канала</string>
+    <string name="channel_description">Апісанне</string>
+    <string name="search_channels">Шукаць каналы</string>
+    <string name="subscribe">Падпісацца</string>
+    <string name="unsubscribe">Адпісацца</string>
+    <string name="subscribers">Падпісчыкі</string>
+    <string name="no_channels">Каналаў пакуль няма</string>
+    <string name="search_contacts">Шукаць кантакты</string>
+    <string name="import_contacts">Імпартаваць кантакты</string>
+    <string name="edit_contact">Рэдагаваць кантакт</string>
+    <string name="delete_contact">Выдаліць кантакт</string>
+    <string name="contact_name">Імя кантакта</string>
+    <string name="no_contacts">Кантактаў пакуль няма</string>
     <string name="contacts_imported">Кантакты імпартаваны</string>
-    <string name="searching_friends">Пошук сяброў у вашых кантактах...</string>
-    
-    <!-- Designs -->
-    <string name="design_classic">Дызайн 1: Класічны</string>
-    <string name="design_modern">Дызайн 2: Сучасны</string>
-    <string name="design_neon">Дызайн 3: Neon</string>
-    <string name="design_child">Намалявана дзіцем</string>
-    
-    <!-- Misc -->
-    <string name="ok">ОК</string>
+    <string name="theme">Тэма</string>
+    <string name="language">Мова</string>
+    <string name="notifications">Паведамленні</string>
+    <string name="privacy">Прыватнасць</string>
+    <string name="account">Акаўнт</string>
+    <string name="logout">Выйсці</string>
+    <string name="design">Дызайн</string>
+    <string name="theme_classic">Класічны</string>
+    <string name="theme_modern">Сучасны</string>
+    <string name="theme_neon">Неон</string>
+    <string name="theme_childish">Намалёвана дзіцём</string>
+    <string name="premium_title">Абнавіць да Прэміум</string>
+    <string name="basic_plan">BASIC</string>
+    <string name="goodplan">GOODPLAN</string>
+    <string name="per_month">/месяц</string>
+    <string name="forever">Назаўжды</string>
+    <string name="basic_features">• Без рэкламы\n• Вялікія файлы\n• Прыярытэтная падтрымка</string>
+    <string name="goodplan_features">• Усё з BASIC\n• Запіс выклікаў\n• Аўтапераклад\n• Выяўленне VPN</string>
+    <string name="subscribe_now">Падпісацца</string>
+    <string name="restore_purchase">Аднавіць пакупку</string>
+    <string name="save">Захаваць</string>
+    <string name="cancel">Адмена</string>
+    <string name="delete">Выдаліць</string>
+    <string name="edit">Рэдагаваць</string>
+    <string name="search">Пошук</string>
+    <string name="loading">Загрузка…</string>
+    <string name="error">Памылка</string>
+    <string name="success">Паспяхова</string>
     <string name="yes">Так</string>
     <string name="no">Не</string>
-    <string name="error">Памылка</string>
-    <string name="success">Поспех</string>
-    <string name="loading">Загрузка...</string>
-    <string name="retry">Паўтарыць</string>
+    <string name="ok">ОК</string>
+    <string name="lang_english_us">English (US)</string>
+    <string name="lang_english_uk">English (UK)</string>
+    <string name="lang_french">Français</string>
+    <string name="lang_spanish">Español</string>
+    <string name="lang_portuguese">Português</string>
+    <string name="lang_chinese">中文</string>
+    <string name="lang_belarusian">Беларуская</string>
+    <string name="lang_ukrainian">Українська</string>
+    <string name="lang_russian">Русский</string>
+    <string name="lang_german">Deutsch</string>
 </resources>

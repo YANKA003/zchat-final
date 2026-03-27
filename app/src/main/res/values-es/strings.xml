@@ -1,89 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GOODOK</string>
-    <string name="login">Iniciar sesión</string>
-    <string name="register">Registrarse</string>
-    <string name="email">Correo electrónico</string>
-    <string name="password">Contraseña</string>
-    <string name="username">Nombre de usuario</string>
-    <string name="settings">Ajustes</string>
-    <string name="premium">Premium</string>
-    <string name="logout">Cerrar sesión</string>
-    <string name="users">Usuarios</string>
-    <string name="no_users">Sin usuarios</string>
-    <string name="online">En línea</string>
-    <string name="offline">Desconectado</string>
-    <string name="type_message">Mensaje...</string>
-    <string name="send">Enviar</string>
-    <string name="no_messages">Sin mensajes</string>
-    
-    <!-- Registration -->
-    <string name="phone_number">Número de teléfono</string>
-    <string name="select_language">Idioma</string>
-    <string name="select_design">Seleccionar diseño</string>
-    <string name="no_account">¿No tienes cuenta? Regístrate</string>
-    <string name="have_account">¿Ya tienes cuenta? Inicia sesión</string>
-    
-    <!-- Settings -->
-    <string name="profile">Perfil</string>
-    <string name="account">Cuenta</string>
-    <string name="privacy">Privacidad</string>
-    <string name="notifications">Notificaciones</string>
-    <string name="chat_settings">Ajustes de chat</string>
-    <string name="language">Idioma de la aplicación</string>
-    <string name="design">Diseño</string>
-    <string name="call_recording">Grabación de llamadas</string>
-    <string name="call_recording_desc">Grabar automáticamente llamadas de voz y vídeo</string>
-    <string name="set_status">Establecer estado</string>
-    <string name="change_photo">Cambiar foto</string>
-    <string name="take_photo">Tomar foto</string>
-    <string name="choose_from_gallery">Elegir de la galería</string>
-    <string name="remove_photo">Eliminar foto</string>
-    
-    <!-- Chats -->
     <string name="chats">Chats</string>
     <string name="calls">Llamadas</string>
     <string name="channels">Canales</string>
     <string name="contacts">Contactos</string>
-    <string name="search">Buscar</string>
-    <string name="new_chat">Nuevo chat</string>
-    <string name="voice_call">Llamada de voz</string>
-    <string name="video_call">Videollamada</string>
-    
-    <!-- Messages -->
-    <string name="edit">Editar</string>
-    <string name="delete">Eliminar</string>
-    <string name="copy">Copiar</string>
-    <string name="edited">(editado)</string>
+    <string name="settings">Ajustes</string>
+    <string name="premium">Premium</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="register">Registrarse</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="username">Nombre de usuario</string>
+    <string name="phone_number">Número de teléfono</string>
+    <string name="no_account">¿No tienes cuenta?</string>
+    <string name="has_account">¿Ya tienes cuenta?</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="type_message">Escribe un mensaje…</string>
+    <string name="send">Enviar</string>
+    <string name="online">En línea</string>
+    <string name="offline">Desconectado</string>
+    <string name="last_seen">Última vez</string>
+    <string name="typing">Escribiendo…</string>
     <string name="edit_message">Editar mensaje</string>
     <string name="delete_message">Eliminar mensaje</string>
-    <string name="delete_confirm">¿Estás seguro de que quieres eliminar este mensaje?</string>
-    <string name="copied">Copiado</string>
+    <string name="copy_message">Copiar mensaje</string>
+    <string name="message_edited">Editado</string>
+    <string name="message_deleted">Mensaje eliminado</string>
+    <string name="incoming_call">Llamada entrante</string>
+    <string name="outgoing_call">Llamada saliente</string>
+    <string name="missed_call">Llamada perdida</string>
+    <string name="voice_call">Llamada de voz</string>
+    <string name="video_call">Videollamada</string>
+    <string name="call_ended">Llamada finalizada</string>
+    <string name="call_duration">Duración</string>
+    <string name="no_call_history">Sin historial de llamadas</string>
+    <string name="create_channel">Crear canal</string>
+    <string name="channel_name">Nombre del canal</string>
+    <string name="channel_description">Descripción</string>
+    <string name="search_channels">Buscar canales</string>
+    <string name="subscribe">Suscribirse</string>
+    <string name="unsubscribe">Cancelar suscripción</string>
+    <string name="subscribers">Suscriptores</string>
+    <string name="no_channels">Sin canales aún</string>
+    <string name="search_contacts">Buscar contactos</string>
+    <string name="import_contacts">Importar contactos</string>
+    <string name="edit_contact">Editar contacto</string>
+    <string name="delete_contact">Eliminar contacto</string>
+    <string name="contact_name">Nombre del contacto</string>
+    <string name="no_contacts">Sin contactos aún</string>
+    <string name="contacts_imported">Contactos importados</string>
+    <string name="theme">Tema</string>
+    <string name="language">Idioma</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="privacy">Privacidad</string>
+    <string name="account">Cuenta</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="design">Diseño</string>
+    <string name="theme_classic">Clásico</string>
+    <string name="theme_modern">Moderno</string>
+    <string name="theme_neon">Neón</string>
+    <string name="theme_childish">Dibujado por un niño</string>
+    <string name="premium_title">Actualizar a Premium</string>
+    <string name="basic_plan">BASIC</string>
+    <string name="goodplan">GOODPLAN</string>
+    <string name="per_month">/mes</string>
+    <string name="forever">Para siempre</string>
+    <string name="basic_features">• Sin anuncios\n• Archivos más grandes\n• Soporte prioritario</string>
+    <string name="goodplan_features">• Todo lo de BASIC\n• Grabación de llamadas\n• Traducción automática\n• Detección de VPN</string>
+    <string name="subscribe_now">Suscribirse ahora</string>
+    <string name="restore_purchase">Restaurar compra</string>
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
-    
-    <!-- Premium -->
-    <string name="premium_title">⭐ GOODOK Premium</string>
-    <string name="premium_features">Traducción automática • Icono personalizado • Funciones exclusivas</string>
-    <string name="premium_subscribe">Suscribirse</string>
-    
-    <!-- Import contacts -->
-    <string name="importing_contacts">Importando contactos...</string>
-    <string name="contacts_imported">Contactos importados</string>
-    <string name="searching_friends">Buscando amigos en tus contactos...</string>
-    
-    <!-- Designs -->
-    <string name="design_classic">Diseño 1: Clásico</string>
-    <string name="design_modern">Diseño 2: Moderno</string>
-    <string name="design_neon">Diseño 3: Neón</string>
-    <string name="design_child">Dibujado por un niño</string>
-    
-    <!-- Misc -->
-    <string name="ok">OK</string>
-    <string name="yes">Sí</string>
-    <string name="no">No</string>
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="search">Buscar</string>
+    <string name="loading">Cargando…</string>
     <string name="error">Error</string>
     <string name="success">Éxito</string>
-    <string name="loading">Cargando...</string>
-    <string name="retry">Reintentar</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <string name="ok">OK</string>
+    <string name="lang_english_us">English (US)</string>
+    <string name="lang_english_uk">English (UK)</string>
+    <string name="lang_french">Français</string>
+    <string name="lang_spanish">Español</string>
+    <string name="lang_portuguese">Português</string>
+    <string name="lang_chinese">中文</string>
+    <string name="lang_belarusian">Беларуская</string>
+    <string name="lang_ukrainian">Українська</string>
+    <string name="lang_russian">Русский</string>
+    <string name="lang_german">Deutsch</string>
 </resources>
