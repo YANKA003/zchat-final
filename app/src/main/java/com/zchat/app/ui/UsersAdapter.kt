@@ -26,7 +26,7 @@ class UsersAdapter(private val onUserClick: (User) -> Unit) : ListAdapter<User, 
     inner class UserViewHolder(private val binding: ItemUserBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                val pos = bindingAdapterPosition
+                val pos = adapterPosition
                 if (pos != RecyclerView.NO_POSITION) onUserClick(getItem(pos))
             }
         }
