@@ -40,6 +40,10 @@
         <activity android:name=".ui.chats.ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.settings.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.calls.CallActivity" android:exported="false" />
+        <activity android:name=".ui.calls.CallsActivity" android:exported="false" />
+        <activity android:name=".ui.channels.ChannelsActivity" android:exported="false" />
+        <activity android:name=".ui.contacts.ContactsActivity" android:exported="false" />
+        <activity android:name=".ui.premium.PremiumActivity" android:exported="false" />
 
         <!-- FCM Service -->
         <service

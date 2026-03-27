@@ -18,10 +18,12 @@ import com.zchat.app.data.Repository
 import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ActivityMainBinding
 import com.zchat.app.ui.auth.AuthActivity
+import com.zchat.app.ui.calls.CallsActivity
+import com.zchat.app.ui.channels.ChannelsActivity
 import com.zchat.app.ui.chats.ChatActivity
+import com.zchat.app.ui.contacts.ContactsActivity
 import com.zchat.app.ui.settings.SettingsActivity
 import com.zchat.app.ui.theme.ThemeManager
-import com.zchat.app.utils.ContactsHelper
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -31,11 +33,9 @@ class MainActivity : AppCompatActivity() {
     private var currentDesign = ThemeManager.DESIGN_CLASSIC
     private val CONTACTS_PERMISSION_REQUEST = 100
     
-    // For alternative layouts
     private var alternativeLayout: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Инициализация ThemeManager
         ThemeManager.init(applicationContext)
         currentDesign = ThemeManager.getDesign()
         
@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
         
-        // Выбираем макет в зависимости от дизайна
         when (currentDesign) {
             ThemeManager.DESIGN_NEON -> setupNeonLayout()
             ThemeManager.DESIGN_CHILD -> setupChildLayout()
@@ -57,14 +56,11 @@ class MainActivity : AppCompatActivity() {
         
         adapter = UsersAdapter { user -> openChat(user) }
         
-        // Находим RecyclerView в зависимости от макета
         val rvUsers = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvUsers)
         rvUsers?.layoutManager = LinearLayoutManager(this)
         rvUsers?.adapter = adapter
         
         applyThemeColors()
-        
-        // Автоматически проверяем контакты при запуске
         checkContactsPermissionAndLoad()
     }
     
@@ -92,12 +88,10 @@ class MainActivity : AppCompatActivity() {
         alternativeLayout = layoutInflater.inflate(R.layout.activity_main_neon, null)
         setContentView(alternativeLayout)
         
-        // Settings button in header (circle)
         findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         
-        // Bottom navigation
         setupBottomNavigation()
     }
     
@@ -105,36 +99,33 @@ class MainActivity : AppCompatActivity() {
         alternativeLayout = layoutInflater.inflate(R.layout.activity_main_child, null)
         setContentView(alternativeLayout)
         
-        // Settings button (crayon style)
         findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         
-        // Bottom navigation
         setupBottomNavigation()
     }
     
     private fun setupBottomNavigation() {
         findViewById<LinearLayout>(R.id.navChats)?.setOnClickListener {
-            Toast.makeText(this, getString(R.string.chats), Toast.LENGTH_SHORT).show()
+            // Уже на чатах
         }
         
         findViewById<LinearLayout>(R.id.navCalls)?.setOnClickListener {
-            Toast.makeText(this, getString(R.string.calls), Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, CallsActivity::class.java))
         }
         
         findViewById<LinearLayout>(R.id.navChannels)?.setOnClickListener {
-            Toast.makeText(this, getString(R.string.channels), Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, ChannelsActivity::class.java))
         }
         
         findViewById<LinearLayout>(R.id.navContacts)?.setOnClickListener {
-            Toast.makeText(this, getString(R.string.contacts), Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, ContactsActivity::class.java))
         }
     }
     
     override fun onResume() {
         super.onResume()
-        // Проверяем, изменился ли дизайн
         if (currentDesign != ThemeManager.getDesign()) {
             recreate()
         }

@@ -50,6 +50,34 @@
     <string name="voice_call">Голосовой звонок</string>
     <string name="video_call">Видеозвонок</string>
     
+    <!-- Calls -->
+    <string name="all">Все</string>
+    <string name="missed">Пропущенные</string>
+    <string name="outgoing">Исходящие</string>
+    <string name="no_calls">Нет звонков</string>
+    <string name="no_missed_calls">Нет пропущенных звонков</string>
+    <string name="no_outgoing_calls">Нет исходящих звонков</string>
+    
+    <!-- Channels -->
+    <string name="channel_name">Название канала</string>
+    <string name="create_channel">Создать канал</string>
+    <string name="search_channels">Поиск каналов</string>
+    <string name="no_channels">Нет каналов</string>
+    <string name="subscribers">подписчиков</string>
+    <string name="subscribe">Подписаться</string>
+    <string name="unsubscribe">Отписаться</string>
+    
+    <!-- Contacts -->
+    <string name="no_contacts">Нет контактов</string>
+    <string name="edit_contact">Редактировать контакт</string>
+    <string name="block">Заблокировать</string>
+    <string name="unblock">Разблокировать</string>
+    <string name="blocked">Заблокирован</string>
+    <string name="not_allowed">Не разрешено</string>
+    <string name="block_contact_confirm">Заблокировать этот контакт?</string>
+    <string name="unblock_contact_confirm">Разблокировать этот контакт?</string>
+    <string name="add_contact">Добавить контакт</string>
+    
     <!-- Messages -->
     <string name="edit">Редактировать</string>
     <string name="delete">Удалить</string>
@@ -64,8 +92,17 @@
     
     <!-- Premium -->
     <string name="premium_title">⭐ GOODOK Premium</string>
+    <string name="premium_subtitle">Разблокируйте все возможности</string>
     <string name="premium_features">Автоперевод • Смена иконки • Эксклюзивные функции</string>
     <string name="premium_subscribe">Оформить</string>
+    <string name="premium_features_list">• Поиск пользователей не из контактов\n• Создание каналов\n• Приоритетная поддержка\n\nGOODPLAN дополнительно:\n• ⭐ Звёздочка на профиле\n• Контроль видимости контактов\n• Режим анонимности</string>
+    <string name="current_plan">Текущий план</string>
+    <string name="basic_features">• Поиск пользователей не из контактов\n• Создание каналов</string>
+    <string name="goodplan_features">• Всё из BASIC\n• ⭐ Звёздочка на профиле\n• Контроль видимости контактов\n• Режим анонимности</string>
+    <string name="month">месяц</string>
+    <string name="forever">навсегда</string>
+    <string name="per_month">$%1$.0f/месяц</string>
+    <string name="lifetime">$%1$.0f навсегда</string>
     
     <!-- Import contacts -->
     <string name="importing_contacts">Импорт контактов...</string>
@@ -86,4 +123,10 @@
     <string name="success">Успешно</string>
     <string name="loading">Загрузка...</string>
     <string name="retry">Повторить</string>
+    <string name="create">Создать</string>
+    
+    <!-- Premium settings -->
+    <string name="allowed_contacts_only">Только разрешённые контакты видят мой профиль</string>
+    <string name="anonymous_mode">Режим анонимности (невидим в поиске)</string>
+    <string name="star_badge">Звёздочка на профиле</string>
 </resources>

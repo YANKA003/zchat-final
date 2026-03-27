@@ -1,6 +1,7 @@
 package com.zchat.app.utils
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import java.util.Locale
@@ -24,28 +25,46 @@ object LanguageHelper {
         "en", "en-gb", "fr", "es", "pt", "zh", "be", "uk", "ru", "de"
     )
     
+    private const val PREFS_NAME = "goodok_prefs"
+    private const val KEY_LANGUAGE = "language"
+    
     fun setLocale(context: Context, languageCode: String): Context {
+        // Сохраняем выбор языка
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_LANGUAGE, languageCode).apply()
+        
         val locale = getLocale(languageCode)
         Locale.setDefault(locale)
         
         val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
         
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            config.setLocale(locale)
-            context.createConfigurationContext(config)
-        } else {
-            config.locale = locale
-            context.resources.updateConfiguration(config, context.resources.displayMetrics)
-            context
-        }
+        return context.createConfigurationContext(config)
+    }
+    
+    fun applyLanguage(context: Context): Context {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val savedLanguage = prefs.getString(KEY_LANGUAGE, "ru") ?: "ru"
+        return setLocale(context, savedLanguage)
+    }
+    
+    fun getSavedLanguage(context: Context): String {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_LANGUAGE, "ru") ?: "ru"
     }
     
     private fun getLocale(code: String): Locale {
         return when (code) {
             "en-gb" -> Locale("en", "GB")
             "zh" -> Locale.SIMPLIFIED_CHINESE
-            "be" -> Locale("be")
-            "uk" -> Locale("uk")
+            "be" -> Locale("be", "BY")
+            "uk" -> Locale("uk", "UA")
+            "ru" -> Locale("ru", "RU")
+            "de" -> Locale("de", "DE")
+            "fr" -> Locale("fr", "FR")
+            "es" -> Locale("es", "ES")
+            "pt" -> Locale("pt", "PT")
             else -> Locale(code)
         }
     }
@@ -55,19 +74,6 @@ object LanguageHelper {
     }
     
     fun getCurrentLanguageCode(context: Context): String {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            context.resources.configuration.locales[0]
-        } else {
-            context.resources.configuration.locale
-        }
-        
-        val code = locale.language
-        val country = locale.country
-        
-        return if (code == "en" && country == "GB") {
-            "en-gb"
-        } else {
-            SUPPORTED_LANGUAGES.keys.find { it == code } ?: "ru"
-        }
+        return getSavedLanguage(context)
     }
 }
