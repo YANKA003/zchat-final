@@ -81,7 +81,7 @@
             android:layout_height="60dp"
             android:layout_marginStart="32dp"
             android:background="@drawable/bg_avatar"
-            android:src="@android:drawable/ic_volume_big"
+            android:src="@android:drawable/ic_btn_speak_now"
             android:tint="@android:color/white" />
 
     </LinearLayout>
