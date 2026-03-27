@@ -115,4 +115,36 @@
     <string name="lang_ukrainian">Українська</string>
     <string name="lang_russian">Русский</string>
     <string name="lang_german">Deutsch</string>
+
+    <!-- Additional strings for existing layouts -->
+    <string name="call_recording">Call Recording</string>
+    <string name="call_recording_desc">Record your phone calls</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="chat_settings">Chat Settings</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="copied">Copied</string>
+    <string name="copy">Copy</string>
+    <string name="delete_confirm">Are you sure you want to delete?</string>
+    <string name="design_child">Child Style</string>
+    <string name="design_classic">Classic</string>
+    <string name="design_modern">Modern</string>
+    <string name="design_neon">Neon</string>
+    <string name="edited">Edited</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="importing_contacts">Importing contacts…</string>
+    <string name="new_chat">New Chat</string>
+    <string name="no_messages">No messages yet</string>
+    <string name="no_users">No users found</string>
+    <string name="premium_features">Premium Features</string>
+    <string name="premium_subscribe">Subscribe</string>
+    <string name="profile">Profile</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="retry">Retry</string>
+    <string name="searching_friends">Searching for friends…</string>
+    <string name="select_design">Select Design</string>
+    <string name="select_language">Select Language</string>
+    <string name="set_status">Set Status</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="users">Users</string>
+    <string name="add_contact">Add Contact</string>
 </resources>
