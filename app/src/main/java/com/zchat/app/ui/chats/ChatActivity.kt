@@ -34,20 +34,20 @@ class ChatActivity : AppCompatActivity() {
         userId = intent.getStringExtra("userId")
         username = intent.getStringExtra("username")
         
-        binding.toolbar.title = username ?: "Чат"
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.tvTitle.text = username ?: "Чат"
+        binding.btnBack.setOnClickListener { finish() }
         
         adapter = MessagesAdapter(repository.currentUser?.uid ?: "")
         binding.rvMessages.layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
         binding.rvMessages.adapter = adapter
         
-        binding.btnVoiceCall.setOnClickListener { Toast.makeText(this, "Голосовой звонок", Toast.LENGTH_SHORT).show() }
+        binding.btnCall.setOnClickListener { Toast.makeText(this, "Голосовой звонок", Toast.LENGTH_SHORT).show() }
         binding.btnVideoCall.setOnClickListener { Toast.makeText(this, "Видеозвонок", Toast.LENGTH_SHORT).show() }
         
         val currentUserId = repository.currentUser?.uid ?: return
         val otherUserId = userId ?: return
         lifecycleScope.launch {
-            repository.getMessages(otherUserId, currentUserId).collect { messages ->
+            repository.observeMessages(currentUserId, otherUserId).collect { messages ->
                 adapter.submitList(messages) { binding.rvMessages.scrollToPosition(messages.size - 1) }
             }
         }
@@ -71,28 +71,27 @@ class ChatActivity : AppCompatActivity() {
         window.statusBarColor = colors.primaryDark.toColorInt()
         
         if (::binding.isInitialized) {
-            binding.toolbar.setBackgroundColor(colors.primary.toColorInt())
-            
-            // Применяем цвета к кнопкам звонков
+            // Кнопки звонков
             val callBg = GradientDrawable().apply {
                 setColor(colors.primary.toColorInt())
-                cornerRadius = 48f
+                cornerRadius = 24f
             }
-            binding.btnVoiceCall.background = callBg.constantState?.newDrawable()?.mutate()
+            binding.btnCall.background = callBg.constantState?.newDrawable()?.mutate()
             binding.btnVideoCall.background = callBg.constantState?.newDrawable()?.mutate()
             
             // Кнопка отправки
             val sendBg = GradientDrawable().apply {
                 setColor(colors.primary.toColorInt())
-                cornerRadius = 48f
+                cornerRadius = 24f
             }
             binding.btnSend.background = sendBg
             
-            // Цвет фона панели звонков
-            val callPanelBg = GradientDrawable().apply {
-                setColor("${colors.primary}15".toColorInt()) // 15% opacity
+            // Цвет статус индикатора
+            val statusBg = GradientDrawable().apply {
+                setColor(colors.onlineIndicator.toColorInt())
+                cornerRadius = 5f
             }
-            binding.callButtons.setBackgroundColor("${colors.primary}15".toColorInt())
+            binding.statusIndicator.background = statusBg
         }
     }
 }

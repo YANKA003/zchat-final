@@ -26,15 +26,18 @@ class UsersAdapter(private val onUserClick: (User) -> Unit) : ListAdapter<User, 
     inner class UserViewHolder(private val binding: ItemUserBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                val pos = absoluteAdapterPosition
+                val pos = bindingAdapterPosition
                 if (pos != RecyclerView.NO_POSITION) onUserClick(getItem(pos))
             }
         }
 
         fun bind(user: User) {
             binding.tvUsername.text = user.username.ifEmpty { "User" }
-            binding.tvLastMessage.text = if (user.isOnline) "В сети" else "Не в сети"
-            binding.onlineIndicator.visibility = if (user.isOnline) View.VISIBLE else View.GONE
+            binding.tvStatus.text = if (user.isOnline) "В сети" else "Не в сети"
+            binding.statusIndicator.visibility = if (user.isOnline) View.VISIBLE else View.GONE
+            
+            // Первая буква имени в аватаре
+            binding.tvAvatar.text = user.username.take(1).uppercase()
             
             // Применяем цвета темы
             val colors = ThemeManager.getColors()
@@ -42,16 +45,16 @@ class UsersAdapter(private val onUserClick: (User) -> Unit) : ListAdapter<User, 
             // Цвет аватара
             val avatarBg = GradientDrawable().apply {
                 setColor(colors.primary.toColorInt())
-                cornerRadius = 24f
+                cornerRadius = 28f
             }
-            binding.ivAvatar.background = avatarBg
+            binding.tvAvatar.background = avatarBg
             
             // Цвет онлайн индикатора
-            val onlineBg = GradientDrawable().apply {
+            val statusBg = GradientDrawable().apply {
                 setColor(colors.onlineIndicator.toColorInt())
-                cornerRadius = 4f
+                cornerRadius = 7f
             }
-            binding.onlineIndicator.background = onlineBg
+            binding.statusIndicator.background = statusBg
         }
     }
 

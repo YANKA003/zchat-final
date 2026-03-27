@@ -3,7 +3,6 @@ package com.zchat.app.ui.theme
 import android.app.Dialog
 import android.content.Context
 import android.view.Window
-import android.widget.ImageView
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.cardview.widget.CardView
@@ -43,7 +42,7 @@ class DesignSelectorDialog(
             rbDesign1.isChecked = selectedDesign == ThemeManager.DESIGN_CLASSIC
             rbDesign2.isChecked = selectedDesign == ThemeManager.DESIGN_MODERN
             
-            // Подсветка выбранной карточки
+            // Подсветка выбранной карточки через alpha
             updateCardSelection(cardDesign1, cardDesign2)
             
             // Обработка нажатий
@@ -84,19 +83,17 @@ class DesignSelectorDialog(
     }
     
     private fun updateCardSelection(card1: CardView, card2: CardView) {
-        val selectedStroke = "#6366F1".toColorInt()
-        val unselectedStroke = "#E2E8F0".toColorInt()
-        
+        // Используем alpha для визуального выделения
         if (selectedDesign == ThemeManager.DESIGN_CLASSIC) {
-            card1.strokeColor = selectedStroke
-            card1.strokeWidth = 3
-            card2.strokeColor = unselectedStroke
-            card2.strokeWidth = 1
+            card1.alpha = 1.0f
+            card2.alpha = 0.7f
+            card1.cardElevation = 8f
+            card2.cardElevation = 2f
         } else {
-            card1.strokeColor = unselectedStroke
-            card1.strokeWidth = 1
-            card2.strokeColor = "#3B82F6".toColorInt()
-            card2.strokeWidth = 3
+            card1.alpha = 0.7f
+            card2.alpha = 1.0f
+            card1.cardElevation = 2f
+            card2.cardElevation = 8f
         }
     }
     

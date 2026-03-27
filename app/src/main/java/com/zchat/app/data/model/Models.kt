@@ -24,7 +24,10 @@ data class Message(
     val content: String,
     val timestamp: Long,
     val isRead: Boolean = false,
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val isDeleted: Boolean = false,
+    val isEdited: Boolean = false,
+    val editedAt: Long = 0
 )
 
 @Entity(tableName = "calls")
@@ -36,7 +39,10 @@ data class Call(
     val duration: Long = 0,
     val type: String = "VOICE",
     val isRecorded: Boolean = false,
-    val recordingPath: String = ""
+    val recordingPath: String = "",
+    val status: String = "RINGING",
+    val callerName: String = "",
+    val receiverName: String = ""
 )
 
 @Entity(tableName = "chat_folders")
@@ -46,6 +52,17 @@ data class ChatFolder(
     val icon: String = "folder",
     val includedChats: String = "",
     val order: Int = 0
+)
+
+data class CallSignal(
+    val id: String = "",
+    val callId: String = "",
+    val senderId: String = "",
+    val receiverId: String = "",
+    val type: String = "offer", // offer, answer, ice-candidate
+    val sdp: String = "",
+    val iceCandidates: String = "",
+    val timestamp: Long = 0
 )
 
 data class AppSettings(
