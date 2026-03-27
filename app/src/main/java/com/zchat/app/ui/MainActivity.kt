@@ -6,7 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.View
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
@@ -21,6 +21,7 @@ import com.zchat.app.ui.auth.AuthActivity
 import com.zchat.app.ui.chats.ChatActivity
 import com.zchat.app.ui.settings.SettingsActivity
 import com.zchat.app.ui.theme.ThemeManager
+import com.zchat.app.utils.ContactsHelper
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -29,16 +30,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: UsersAdapter
     private var currentDesign = ThemeManager.DESIGN_CLASSIC
     private val CONTACTS_PERMISSION_REQUEST = 100
+    
+    // For alternative layouts
+    private var alternativeLayout: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Инициализация ThemeManager
         ThemeManager.init(applicationContext)
         currentDesign = ThemeManager.getDesign()
-        applyThemeColors()
         
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         repository = Repository(applicationContext)
         
         if (repository.currentUser == null) {
@@ -46,6 +47,30 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
+        
+        // Выбираем макет в зависимости от дизайна
+        when (currentDesign) {
+            ThemeManager.DESIGN_NEON -> setupNeonLayout()
+            ThemeManager.DESIGN_CHILD -> setupChildLayout()
+            else -> setupClassicLayout()
+        }
+        
+        adapter = UsersAdapter { user -> openChat(user) }
+        
+        // Находим RecyclerView в зависимости от макета
+        val rvUsers = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvUsers)
+        rvUsers?.layoutManager = LinearLayoutManager(this)
+        rvUsers?.adapter = adapter
+        
+        applyThemeColors()
+        
+        // Автоматически проверяем контакты при запуске
+        checkContactsPermissionAndLoad()
+    }
+    
+    private fun setupClassicLayout() {
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -61,13 +86,50 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
+    
+    private fun setupNeonLayout() {
+        alternativeLayout = layoutInflater.inflate(R.layout.activity_main_neon, null)
+        setContentView(alternativeLayout)
         
-        adapter = UsersAdapter { user -> openChat(user) }
-        binding.rvUsers.layoutManager = LinearLayoutManager(this)
-        binding.rvUsers.adapter = adapter
+        // Settings button in header (circle)
+        findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
         
-        // Автоматически проверяем контакты при запуске
-        checkContactsPermissionAndLoad()
+        // Bottom navigation
+        setupBottomNavigation()
+    }
+    
+    private fun setupChildLayout() {
+        alternativeLayout = layoutInflater.inflate(R.layout.activity_main_child, null)
+        setContentView(alternativeLayout)
+        
+        // Settings button (crayon style)
+        findViewById<ImageButton>(R.id.btnSettings)?.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        
+        // Bottom navigation
+        setupBottomNavigation()
+    }
+    
+    private fun setupBottomNavigation() {
+        findViewById<LinearLayout>(R.id.navChats)?.setOnClickListener {
+            Toast.makeText(this, getString(R.string.chats), Toast.LENGTH_SHORT).show()
+        }
+        
+        findViewById<LinearLayout>(R.id.navCalls)?.setOnClickListener {
+            Toast.makeText(this, getString(R.string.calls), Toast.LENGTH_SHORT).show()
+        }
+        
+        findViewById<LinearLayout>(R.id.navChannels)?.setOnClickListener {
+            Toast.makeText(this, getString(R.string.channels), Toast.LENGTH_SHORT).show()
+        }
+        
+        findViewById<LinearLayout>(R.id.navContacts)?.setOnClickListener {
+            Toast.makeText(this, getString(R.string.contacts), Toast.LENGTH_SHORT).show()
+        }
     }
     
     override fun onResume() {
@@ -84,7 +146,6 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 loadUsersFromContacts()
             } else {
-                // Если разрешение не дано, загружаем всех пользователей
                 loadAllUsers()
             }
         }
@@ -94,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         val colors = ThemeManager.getColors()
         window.statusBarColor = colors.primaryDark.toColorInt()
         
-        if (::binding.isInitialized) {
+        if (currentDesign == ThemeManager.DESIGN_CLASSIC && ::binding.isInitialized) {
             binding.toolbar.setBackgroundColor(colors.primary.toColorInt())
             binding.toolbar.setTitleTextColor(colors.sentMessageText.toColorInt())
         }
@@ -105,7 +166,6 @@ class MainActivity : AppCompatActivity() {
             == PackageManager.PERMISSION_GRANTED) {
             loadUsersFromContacts()
         } else {
-            // Запрашиваем разрешение автоматически
             requestPermissions(
                 arrayOf(Manifest.permission.READ_CONTACTS),
                 CONTACTS_PERMISSION_REQUEST
@@ -113,23 +173,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Получает номера телефонов из телефонной книги устройства
-     */
     private fun getPhoneContacts(): List<String> {
         val phones = mutableListOf<String>()
         try {
             contentResolver.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-                null,
-                null,
-                null
+                null, null, null
             )?.use { cursor ->
                 val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 while (cursor.moveToNext()) {
                     val number = cursor.getString(numberIndex)
-                    // Нормализуем номер: оставляем только цифры
                     val normalized = number.replace(Regex("[^0-9]"), "")
                     if (normalized.length >= 10) {
                         phones.add(normalized)
@@ -143,76 +197,80 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadUsersFromContacts() {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.emptyState.visibility = View.GONE
+        showLoading(true)
         
-        // Получаем контакты из телефонной книги
         val contactPhones = getPhoneContacts()
         
         lifecycleScope.launch {
             val result = repository.searchUsers("")
-            binding.progressBar.visibility = View.GONE
+            showLoading(false)
             
             result.fold(
                 onSuccess = { allUsers ->
                     val currentUid = repository.currentUser?.uid
                     
-                    // Фильтруем пользователей: показываем тех, чей номер есть в контактах
-                    val contactsInZChat = allUsers.filter { user ->
+                    val contactsInApp = allUsers.filter { user ->
                         user.uid != currentUid && 
                         user.phoneNumber.isNotEmpty() &&
                         contactPhones.any { contactPhone ->
-                            // Сравниваем последние 10 цифр (без кода страны)
                             val userPhone = user.phoneNumber.replace(Regex("[^0-9]"), "")
                             userPhone.length >= 10 && contactPhone.length >= 10 &&
                             userPhone.takeLast(10) == contactPhone.takeLast(10)
                         }
                     }
                     
-                    if (contactsInZChat.isEmpty()) {
-                        // Если никто из контактов не в ZChat
-                        binding.tvEmpty.text = "Никто из ваших контактов\nещё не зарегистрирован в ZChat\n\nПригласите друзей!"
-                        binding.emptyState.visibility = View.VISIBLE
-                        // Показываем всех пользователей как fallback
+                    if (contactsInApp.isEmpty()) {
+                        showEmpty(getString(R.string.searching_friends))
                         adapter.submitList(allUsers.filter { it.uid != currentUid })
                     } else {
-                        adapter.submitList(contactsInZChat)
-                        binding.emptyState.visibility = View.GONE
+                        adapter.submitList(contactsInApp)
+                        showEmpty(false)
                     }
                 },
                 onFailure = { 
                     Toast.makeText(this@MainActivity, "Ошибка: ${it.message}", Toast.LENGTH_SHORT).show()
-                    binding.tvEmpty.text = "Ошибка загрузки"
-                    binding.emptyState.visibility = View.VISIBLE
+                    showEmpty("Ошибка загрузки")
                 }
             )
         }
     }
     
     private fun loadAllUsers() {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.emptyState.visibility = View.GONE
+        showLoading(true)
         
         lifecycleScope.launch {
             val result = repository.searchUsers("")
-            binding.progressBar.visibility = View.GONE
+            showLoading(false)
             result.fold(
                 onSuccess = { users ->
                     val filtered = users.filter { it.uid != repository.currentUser?.uid }
                     adapter.submitList(filtered)
-                    if (filtered.isEmpty()) {
-                        binding.tvEmpty.text = "Пока нет других пользователей"
-                        binding.emptyState.visibility = View.VISIBLE
-                    } else {
-                        binding.emptyState.visibility = View.GONE
-                    }
+                    showEmpty(if (filtered.isEmpty()) "Пока нет других пользователей" else false)
                 },
                 onFailure = { 
                     Toast.makeText(this@MainActivity, "Ошибка: ${it.message}", Toast.LENGTH_SHORT).show()
-                    binding.tvEmpty.text = "Ошибка загрузки"
-                    binding.emptyState.visibility = View.VISIBLE
+                    showEmpty("Ошибка загрузки")
                 }
             )
+        }
+    }
+    
+    private fun showLoading(show: Boolean) {
+        findViewById<ProgressBar>(R.id.progressBar)?.visibility = if (show) View.VISIBLE else View.GONE
+    }
+    
+    private fun showEmpty(message: Any) {
+        val emptyState = findViewById<LinearLayout>(R.id.emptyState)
+        val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
+        
+        when (message) {
+            is String -> {
+                tvEmpty?.text = message
+                emptyState?.visibility = View.VISIBLE
+            }
+            is Boolean -> {
+                emptyState?.visibility = if (message) View.VISIBLE else View.GONE
+            }
         }
     }
 

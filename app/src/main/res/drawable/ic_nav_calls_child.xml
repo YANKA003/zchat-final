@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Phone with hand-drawn style -->
+    <path
+        android:fillColor="#AF7AC5"
+        android:strokeColor="#2C3E50"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M8,6C8,5 9,4 10,4L12,4C13,4 14,5 14,6C14,8 15,10 16,12C17,14 18,14 20,14C21,14 22,15 22,16L22,20C22,21 21,22 20,22L18,22C12,22 8,16 8,10L8,6Z"/>
+</vector>

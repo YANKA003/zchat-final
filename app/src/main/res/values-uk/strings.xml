@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GOODOK</string>
+    <string name="login">Увійти</string>
+    <string name="register">Реєстрація</string>
+    <string name="email">Електронна пошта</string>
+    <string name="password">Пароль</string>
+    <string name="username">Ім\'я користувача</string>
+    <string name="settings">Налаштування</string>
+    <string name="premium">Premium</string>
+    <string name="logout">Вийти</string>
+    <string name="users">Користувачі</string>
+    <string name="no_users">Немає користувачів</string>
+    <string name="online">В мережі</string>
+    <string name="offline">Не в мережі</string>
+    <string name="type_message">Повідомлення...</string>
+    <string name="send">Надіслати</string>
+    <string name="no_messages">Немає повідомлень</string>
+    
+    <!-- Registration -->
+    <string name="phone_number">Номер телефону</string>
+    <string name="select_language">Мова</string>
+    <string name="select_design">Вибрати дизайн</string>
+    <string name="no_account">Немає акаунта? Зареєструйтесь</string>
+    <string name="have_account">Вже є акаунт? Увійдіть</string>
+    
+    <!-- Settings -->
+    <string name="profile">Профіль</string>
+    <string name="account">Акаунт</string>
+    <string name="privacy">Приватність</string>
+    <string name="notifications">Сповіщення</string>
+    <string name="chat_settings">Налаштування чату</string>
+    <string name="language">Мова додатку</string>
+    <string name="design">Дизайн</string>
+    <string name="call_recording">Запис дзвінків</string>
+    <string name="call_recording_desc">Автозапис голосових та відеодзвінків</string>
+    <string name="set_status">Встановити статус</string>
+    <string name="change_photo">Змінити фото</string>
+    <string name="take_photo">Зробити фото</string>
+    <string name="choose_from_gallery">Вибрати з галереї</string>
+    <string name="remove_photo">Видалити фото</string>
+    
+    <!-- Chats -->
+    <string name="chats">Чати</string>
+    <string name="calls">Дзвінки</string>
+    <string name="channels">Канали</string>
+    <string name="contacts">Контакти</string>
+    <string name="search">Пошук</string>
+    <string name="new_chat">Новий чат</string>
+    <string name="voice_call">Голосовий дзвінок</string>
+    <string name="video_call">Відеодзвінок</string>
+    
+    <!-- Messages -->
+    <string name="edit">Редагувати</string>
+    <string name="delete">Видалити</string>
+    <string name="copy">Копіювати</string>
+    <string name="edited">(відредаговано)</string>
+    <string name="edit_message">Редагувати повідомлення</string>
+    <string name="delete_message">Видалити повідомлення</string>
+    <string name="delete_confirm">Ви впевнені, що хочете видалити це повідомлення?</string>
+    <string name="copied">Скопійовано</string>
+    <string name="save">Зберегти</string>
+    <string name="cancel">Скасувати</string>
+    
+    <!-- Premium -->
+    <string name="premium_title">⭐ GOODOK Premium</string>
+    <string name="premium_features">Автопереклад • Власна іконка • Ексклюзивні функції</string>
+    <string name="premium_subscribe">Підписатися</string>
+    
+    <!-- Import contacts -->
+    <string name="importing_contacts">Імпорт контактів...</string>
+    <string name="contacts_imported">Контакти імпортовано</string>
+    <string name="searching_friends">Пошук друзів у ваших контактах...</string>
+    
+    <!-- Designs -->
+    <string name="design_classic">Дизайн 1: Класичний</string>
+    <string name="design_modern">Дизайн 2: Сучасний</string>
+    <string name="design_neon">Дизайн 3: Neon</string>
+    <string name="design_child">Намальовано дитиною</string>
+    
+    <!-- Misc -->
+    <string name="ok">ОК</string>
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
+    <string name="error">Помилка</string>
+    <string name="success">Успіх</string>
+    <string name="loading">Завантаження...</string>
+    <string name="retry">Повторити</string>
+</resources>

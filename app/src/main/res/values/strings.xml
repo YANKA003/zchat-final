@@ -16,4 +16,74 @@
     <string name="type_message">Сообщение...</string>
     <string name="send">Отправить</string>
     <string name="no_messages">Нет сообщений</string>
+    
+    <!-- Registration -->
+    <string name="phone_number">Номер телефона</string>
+    <string name="select_language">Язык</string>
+    <string name="select_design">Выбрать дизайн</string>
+    <string name="no_account">Нет аккаунта? Зарегистрируйтесь</string>
+    <string name="have_account">Уже есть аккаунт? Войдите</string>
+    
+    <!-- Settings -->
+    <string name="profile">Профиль</string>
+    <string name="account">Аккаунт</string>
+    <string name="privacy">Приватность</string>
+    <string name="notifications">Уведомления</string>
+    <string name="chat_settings">Настройки чата</string>
+    <string name="language">Язык приложения</string>
+    <string name="design">Дизайн</string>
+    <string name="call_recording">Запись звонков</string>
+    <string name="call_recording_desc">Автозапись голосовых и видеозвонков</string>
+    <string name="set_status">Установить статус</string>
+    <string name="change_photo">Изменить фото</string>
+    <string name="take_photo">Сфотографировать</string>
+    <string name="choose_from_gallery">Выбрать из галереи</string>
+    <string name="remove_photo">Удалить фото</string>
+    
+    <!-- Chats -->
+    <string name="chats">Чаты</string>
+    <string name="calls">Звонки</string>
+    <string name="channels">Каналы</string>
+    <string name="contacts">Контакты</string>
+    <string name="search">Поиск</string>
+    <string name="new_chat">Новый чат</string>
+    <string name="voice_call">Голосовой звонок</string>
+    <string name="video_call">Видеозвонок</string>
+    
+    <!-- Messages -->
+    <string name="edit">Редактировать</string>
+    <string name="delete">Удалить</string>
+    <string name="copy">Копировать</string>
+    <string name="edited">(ред.)</string>
+    <string name="edit_message">Редактировать сообщение</string>
+    <string name="delete_message">Удалить сообщение</string>
+    <string name="delete_confirm">Вы уверены, что хотите удалить это сообщение?</string>
+    <string name="copied">Скопировано</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    
+    <!-- Premium -->
+    <string name="premium_title">⭐ GOODOK Premium</string>
+    <string name="premium_features">Автоперевод • Смена иконки • Эксклюзивные функции</string>
+    <string name="premium_subscribe">Оформить</string>
+    
+    <!-- Import contacts -->
+    <string name="importing_contacts">Импорт контактов...</string>
+    <string name="contacts_imported">Контакты импортированы</string>
+    <string name="searching_friends">Поиск друзей в ваших контактах...</string>
+    
+    <!-- Designs -->
+    <string name="design_classic">Дизайн 1: Классический</string>
+    <string name="design_modern">Дизайн 2: Современный</string>
+    <string name="design_neon">Дизайн 3: Neon</string>
+    <string name="design_child">Drawn by a child</string>
+    
+    <!-- Misc -->
+    <string name="ok">ОК</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="error">Ошибка</string>
+    <string name="success">Успешно</string>
+    <string name="loading">Загрузка...</string>
+    <string name="retry">Повторить</string>
 </resources>

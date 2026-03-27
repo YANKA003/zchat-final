@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GOODOK</string>
+    <string name="login">Entrar</string>
+    <string name="register">Registrar</string>
+    <string name="email">Email</string>
+    <string name="password">Senha</string>
+    <string name="username">Nome de usuário</string>
+    <string name="settings">Configurações</string>
+    <string name="premium">Premium</string>
+    <string name="logout">Sair</string>
+    <string name="users">Usuários</string>
+    <string name="no_users">Sem usuários</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="type_message">Mensagem...</string>
+    <string name="send">Enviar</string>
+    <string name="no_messages">Sem mensagens</string>
+    
+    <!-- Registration -->
+    <string name="phone_number">Número de telefone</string>
+    <string name="select_language">Idioma</string>
+    <string name="select_design">Selecionar design</string>
+    <string name="no_account">Não tem conta? Registre-se</string>
+    <string name="have_account">Já tem conta? Entrar</string>
+    
+    <!-- Settings -->
+    <string name="profile">Perfil</string>
+    <string name="account">Conta</string>
+    <string name="privacy">Privacidade</string>
+    <string name="notifications">Notificações</string>
+    <string name="chat_settings">Configurações de chat</string>
+    <string name="language">Idioma do aplicativo</string>
+    <string name="design">Design</string>
+    <string name="call_recording">Gravação de chamadas</string>
+    <string name="call_recording_desc">Gravar automaticamente chamadas de voz e vídeo</string>
+    <string name="set_status">Definir status</string>
+    <string name="change_photo">Alterar foto</string>
+    <string name="take_photo">Tirar foto</string>
+    <string name="choose_from_gallery">Escolher da galeria</string>
+    <string name="remove_photo">Remover foto</string>
+    
+    <!-- Chats -->
+    <string name="chats">Conversas</string>
+    <string name="calls">Chamadas</string>
+    <string name="channels">Canais</string>
+    <string name="contacts">Contatos</string>
+    <string name="search">Buscar</string>
+    <string name="new_chat">Nova conversa</string>
+    <string name="voice_call">Chamada de voz</string>
+    <string name="video_call">Videochamada</string>
+    
+    <!-- Messages -->
+    <string name="edit">Editar</string>
+    <string name="delete">Excluir</string>
+    <string name="copy">Copiar</string>
+    <string name="edited">(editado)</string>
+    <string name="edit_message">Editar mensagem</string>
+    <string name="delete_message">Excluir mensagem</string>
+    <string name="delete_confirm">Tem certeza de que deseja excluir esta mensagem?</string>
+    <string name="copied">Copiado</string>
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    
+    <!-- Premium -->
+    <string name="premium_title">⭐ GOODOK Premium</string>
+    <string name="premium_features">Tradução automática • Ícone personalizado • Recursos exclusivos</string>
+    <string name="premium_subscribe">Assinar</string>
+    
+    <!-- Import contacts -->
+    <string name="importing_contacts">Importando contatos...</string>
+    <string name="contacts_imported">Contatos importados</string>
+    <string name="searching_friends">Procurando amigos em seus contatos...</string>
+    
+    <!-- Designs -->
+    <string name="design_classic">Design 1: Clássico</string>
+    <string name="design_modern">Design 2: Moderno</string>
+    <string name="design_neon">Design 3: Neon</string>
+    <string name="design_child">Desenhado por uma criança</string>
+    
+    <!-- Misc -->
+    <string name="ok">OK</string>
+    <string name="yes">Sim</string>
+    <string name="no">Não</string>
+    <string name="error">Erro</string>
+    <string name="success">Sucesso</string>
+    <string name="loading">Carregando...</string>
+    <string name="retry">Tentar novamente</string>
+</resources>

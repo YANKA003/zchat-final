@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Person with hand-drawn style -->
+    <path
+        android:fillColor="#5DADE2"
+        android:strokeColor="#2C3E50"
+        android:strokeWidth="2"
+        android:pathData="M16,6C16,6 12,6 12,10C12,14 14,16 16,16C18,16 20,14 20,10C20,6 16,6 16,6Z"/>
+    <path
+        android:fillColor="#AF7AC5"
+        android:strokeColor="#2C3E50"
+        android:strokeWidth="2"
+        android:pathData="M8,28C8,24 12,20 16,20C20,20 24,24 24,28"/>
+</vector>
