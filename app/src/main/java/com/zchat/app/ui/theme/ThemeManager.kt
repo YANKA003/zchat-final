@@ -7,14 +7,16 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Менеджер тем для переключения между дизайнами ZChat.
- * Поддерживает два стиля оформления:
+ * Поддерживает три стиля оформления:
  * - Дизайн 1: Классический (индиго/фиолетовый)
  * - Дизайн 2: Современный (синий/розовый)
+ * - Дизайн 3: Neon (фиолетово-синий градиент)
  */
 object ThemeManager {
     
     const val DESIGN_CLASSIC = 1
     const val DESIGN_MODERN = 2
+    const val DESIGN_NEON = 3
     
     private const val PREFS_NAME = "theme_prefs"
     private const val KEY_DESIGN = "selected_design"
@@ -40,11 +42,17 @@ object ThemeManager {
     
     fun isModernDesign(): Boolean = _currentDesign.value == DESIGN_MODERN
     
+    fun isNeonDesign(): Boolean = _currentDesign.value == DESIGN_NEON
+    
     /**
      * Возвращает цвета для текущего дизайна
      */
     fun getColors(): ThemeColors {
-        return if (isClassicDesign()) getClassicColors() else getModernColors()
+        return when (_currentDesign.value) {
+            DESIGN_MODERN -> getModernColors()
+            DESIGN_NEON -> getNeonColors()
+            else -> getClassicColors()
+        }
     }
     
     private fun getClassicColors(): ThemeColors {
@@ -63,7 +71,9 @@ object ThemeManager {
             textPrimary = "#1E293B",
             textSecondary = "#64748B",
             divider = "#E2E8F0",
-            fabBackground = "#6366F1"
+            fabBackground = "#6366F1",
+            gradientStart = "#6366F1",
+            gradientEnd = "#6366F1"
         )
     }
     
@@ -83,7 +93,31 @@ object ThemeManager {
             textPrimary = "#1E293B",
             textSecondary = "#64748B",
             divider = "#E2E8F0",
-            fabBackground = "#EC4899"      // Розовый FAB
+            fabBackground = "#EC4899",     // Розовый FAB
+            gradientStart = "#3B82F6",
+            gradientEnd = "#3B82F6"
+        )
+    }
+    
+    private fun getNeonColors(): ThemeColors {
+        return ThemeColors(
+            primary = "#6C5CE7",           // Фиолетовый Neon
+            primaryDark = "#5B4BDB",
+            primaryLight = "#A29BFE",
+            background = "#F5F7FA",        // Светло-серый
+            surface = "#FFFFFF",
+            sentMessage = "#6C5CE7",       // Фиолетовый
+            sentMessageText = "#FFFFFF",
+            receivedMessage = "#FFFFFF",   // Белый
+            receivedMessageText = "#2D3436",
+            accent = "#A29BFE",            // Светло-фиолетовый
+            onlineIndicator = "#00B894",
+            textPrimary = "#2D3436",
+            textSecondary = "#636E72",
+            divider = "#DFE6E9",
+            fabBackground = "#6C5CE7",
+            gradientStart = "#6C5CE7",     // Градиент для профиля
+            gradientEnd = "#A29BFE"
         )
     }
 }
@@ -106,5 +140,7 @@ data class ThemeColors(
     val textPrimary: String,
     val textSecondary: String,
     val divider: String,
-    val fabBackground: String
+    val fabBackground: String,
+    val gradientStart: String,
+    val gradientEnd: String
 )

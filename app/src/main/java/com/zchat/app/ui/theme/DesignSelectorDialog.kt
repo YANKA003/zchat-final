@@ -6,7 +6,6 @@ import android.view.Window
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.cardview.widget.CardView
-import androidx.core.graphics.toColorInt
 import com.zchat.app.R
 
 /**
@@ -34,32 +33,43 @@ class DesignSelectorDialog(
             
             val cardDesign1 = findViewById<CardView>(R.id.cardDesign1)
             val cardDesign2 = findViewById<CardView>(R.id.cardDesign2)
+            val cardDesign3 = findViewById<CardView>(R.id.cardDesign3)
             val rbDesign1 = findViewById<RadioButton>(R.id.rbDesign1)
             val rbDesign2 = findViewById<RadioButton>(R.id.rbDesign2)
+            val rbDesign3 = findViewById<RadioButton>(R.id.rbDesign3)
             
             // Установка текущего выбора
             selectedDesign = ThemeManager.getDesign()
             rbDesign1.isChecked = selectedDesign == ThemeManager.DESIGN_CLASSIC
             rbDesign2.isChecked = selectedDesign == ThemeManager.DESIGN_MODERN
+            rbDesign3.isChecked = selectedDesign == ThemeManager.DESIGN_NEON
             
             // Подсветка выбранной карточки через alpha
-            updateCardSelection(cardDesign1, cardDesign2)
+            updateCardSelection(cardDesign1, cardDesign2, cardDesign3)
             
             // Обработка нажатий
             cardDesign1.setOnClickListener {
-                selectDesign(ThemeManager.DESIGN_CLASSIC, rbDesign1, rbDesign2, cardDesign1, cardDesign2)
+                selectDesign(ThemeManager.DESIGN_CLASSIC, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
             }
             
             cardDesign2.setOnClickListener {
-                selectDesign(ThemeManager.DESIGN_MODERN, rbDesign1, rbDesign2, cardDesign1, cardDesign2)
+                selectDesign(ThemeManager.DESIGN_MODERN, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
+            }
+            
+            cardDesign3.setOnClickListener {
+                selectDesign(ThemeManager.DESIGN_NEON, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
             }
             
             rbDesign1.setOnClickListener {
-                selectDesign(ThemeManager.DESIGN_CLASSIC, rbDesign1, rbDesign2, cardDesign1, cardDesign2)
+                selectDesign(ThemeManager.DESIGN_CLASSIC, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
             }
             
             rbDesign2.setOnClickListener {
-                selectDesign(ThemeManager.DESIGN_MODERN, rbDesign1, rbDesign2, cardDesign1, cardDesign2)
+                selectDesign(ThemeManager.DESIGN_MODERN, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
+            }
+            
+            rbDesign3.setOnClickListener {
+                selectDesign(ThemeManager.DESIGN_NEON, rbDesign1, rbDesign2, rbDesign3, cardDesign1, cardDesign2, cardDesign3)
             }
             
             setCancelable(true)
@@ -72,35 +82,38 @@ class DesignSelectorDialog(
         design: Int, 
         rb1: RadioButton, 
         rb2: RadioButton,
+        rb3: RadioButton,
         card1: CardView,
-        card2: CardView
+        card2: CardView,
+        card3: CardView
     ) {
         selectedDesign = design
         rb1.isChecked = design == ThemeManager.DESIGN_CLASSIC
         rb2.isChecked = design == ThemeManager.DESIGN_MODERN
-        updateCardSelection(card1, card2)
+        rb3.isChecked = design == ThemeManager.DESIGN_NEON
+        updateCardSelection(card1, card2, card3)
         applyDesign()
     }
     
-    private fun updateCardSelection(card1: CardView, card2: CardView) {
+    private fun updateCardSelection(card1: CardView, card2: CardView, card3: CardView) {
         // Используем alpha для визуального выделения
-        if (selectedDesign == ThemeManager.DESIGN_CLASSIC) {
-            card1.alpha = 1.0f
-            card2.alpha = 0.7f
-            card1.cardElevation = 8f
-            card2.cardElevation = 2f
-        } else {
-            card1.alpha = 0.7f
-            card2.alpha = 1.0f
-            card1.cardElevation = 2f
-            card2.cardElevation = 8f
-        }
+        card1.alpha = if (selectedDesign == ThemeManager.DESIGN_CLASSIC) 1.0f else 0.6f
+        card2.alpha = if (selectedDesign == ThemeManager.DESIGN_MODERN) 1.0f else 0.6f
+        card3.alpha = if (selectedDesign == ThemeManager.DESIGN_NEON) 1.0f else 0.6f
+        
+        card1.cardElevation = if (selectedDesign == ThemeManager.DESIGN_CLASSIC) 8f else 2f
+        card2.cardElevation = if (selectedDesign == ThemeManager.DESIGN_MODERN) 8f else 2f
+        card3.cardElevation = if (selectedDesign == ThemeManager.DESIGN_NEON) 8f else 2f
     }
     
     private fun applyDesign() {
         if (selectedDesign != ThemeManager.getDesign()) {
             ThemeManager.setDesign(selectedDesign)
-            val designName = if (selectedDesign == ThemeManager.DESIGN_CLASSIC) "Классический" else "Современный"
+            val designName = when (selectedDesign) {
+                ThemeManager.DESIGN_MODERN -> "Современный"
+                ThemeManager.DESIGN_NEON -> "Neon"
+                else -> "Классический"
+            }
             Toast.makeText(context, "Выбран $designName дизайн", Toast.LENGTH_SHORT).show()
             onDesignSelected?.invoke(selectedDesign)
         }

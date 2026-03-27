@@ -59,7 +59,7 @@ data class CallSignal(
     val callId: String = "",
     val senderId: String = "",
     val receiverId: String = "",
-    val type: String = "offer", // offer, answer, ice-candidate
+    val type: String = "offer",
     val sdp: String = "",
     val iceCandidates: String = "",
     val timestamp: Long = 0
@@ -67,7 +67,7 @@ data class CallSignal(
 
 data class AppSettings(
     val theme: Int = 0,
-    val designStyle: Int = 1, // 1 = Classic, 2 = Modern
+    val designStyle: Int = 1, // 1 = Classic, 2 = Modern, 3 = Neon
     val chatBackground: String = "default",
     val enableAnimations: Boolean = true,
     val showOnlineStatus: Boolean = true,
@@ -79,5 +79,6 @@ data class AppSettings(
     val batterySaverThreshold: Int = 30,
     val premiumEnabled: Boolean = false,
     val autoTranslate: Boolean = false,
-    val targetLanguage: String = "ru"
+    val targetLanguage: String = "ru",
+    val language: String = "ru"
 )

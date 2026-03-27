@@ -2,7 +2,8 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -28,12 +29,157 @@
             android:orientation="vertical"
             android:padding="8dp">
 
+            <!-- Profile Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardProfile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Gradient Header -->
+                    <LinearLayout
+                        android:id="@+id/profileHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_profile_header">
+
+                        <!-- Avatar -->
+                        <FrameLayout
+                            android:layout_width="88dp"
+                            android:layout_height="88dp"
+                            android:layout_marginTop="30dp">
+
+                            <ImageView
+                                android:id="@+id/ivAvatar"
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/bg_avatar"
+                                android:scaleType="centerCrop"
+                                android:src="@android:drawable/ic_menu_camera"/>
+
+                            <!-- Edit Photo Button -->
+                            <ImageButton
+                                android:id="@+id/btnEditPhoto"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:layout_gravity="bottom|end"
+                                android:background="@drawable/bg_avatar"
+                                android:src="@android:drawable/ic_menu_edit"
+                                android:tint="@android:color/white"
+                                android:scaleType="centerInside"
+                                android:padding="6dp"
+                                android:contentDescription="Изменить фото"/>
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <!-- Profile Info -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvProfileName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Имя пользователя"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/tvProfilePhone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+7 (999) 123-45-67"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="8dp">
+
+                            <View
+                                android:layout_width="8dp"
+                                android:layout_height="8dp"
+                                android:background="@drawable/status_online"/>
+
+                            <TextView
+                                android:id="@+id/tvProfileStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=" В сети"
+                                android:textSize="12sp"
+                                android:textColor="#22C55E"/>
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/btnSetStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Установить статус"
+                            android:textSize="12sp"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_marginTop="12dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Language Selection -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="ЯЗЫК" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="8dp"/>
+            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp" app:cardCornerRadius="12dp">
+                <LinearLayout android:id="@+id/btnLanguage" style="@style/SettingsItem">
+                    <ImageView android:src="@android:drawable/ic_menu_mapmode" style="@style/SettingsIcon"/>
+                    <LinearLayout style="@style/SettingsTextContainer">
+                        <TextView android:text="Язык приложения" style="@style/SettingsTitle"/>
+                        <TextView android:id="@+id/tvCurrentLanguage" android:text="Русский" style="@style/SettingsSubtitle"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Design Selection -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="ОФОРМЛЕНИЕ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="16dp"/>
+            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp" app:cardCornerRadius="12dp">
+                <LinearLayout android:id="@+id/btnDesign" style="@style/SettingsItem">
+                    <ImageView android:src="@android:drawable/ic_menu_gallery" style="@style/SettingsIcon"/>
+                    <LinearLayout style="@style/SettingsTextContainer">
+                        <TextView android:text="Выбор дизайна" style="@style/SettingsTitle"/>
+                        <TextView android:id="@+id/tvCurrentDesign" android:text="Классический" style="@style/SettingsSubtitle"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Premium Banner -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardPremium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
+                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="#FEF3C7"
                 app:cardCornerRadius="12dp">
                 <LinearLayout
@@ -52,7 +198,7 @@
 
             <!-- Account -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="УЧЁТНАЯ ЗАПИСЬ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="8dp"/>
+                android:text="УЧЁТНАЯ ЗАПИСЬ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="16dp"/>
             <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp" app:cardCornerRadius="12dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -74,20 +220,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Design Selection -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="ОФОРМЛЕНИЕ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="16dp"/>
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp" app:cardCornerRadius="12dp">
-                <LinearLayout android:id="@+id/btnDesign" style="@style/SettingsItem">
-                    <ImageView android:src="@android:drawable/ic_menu_gallery" style="@style/SettingsIcon"/>
-                    <LinearLayout style="@style/SettingsTextContainer">
-                        <TextView android:text="Выбор дизайна" style="@style/SettingsTitle"/>
-                        <TextView android:text="Классический или современный стиль" style="@style/SettingsSubtitle"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
             <!-- Chat Settings -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="НАСТРОЙКИ ЧАТОВ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="16dp"/>
@@ -99,14 +231,6 @@
                         <LinearLayout style="@style/SettingsTextContainer">
                             <TextView android:text="Настройки чатов" style="@style/SettingsTitle"/>
                             <TextView android:text="Фон, тема, анимации" style="@style/SettingsSubtitle"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                    <View style="@style/SettingsDivider"/>
-                    <LinearLayout android:id="@+id/btnFolders" style="@style/SettingsItem">
-                        <ImageView android:src="@android:drawable/ic_menu_sort_by_size" style="@style/SettingsIcon"/>
-                        <LinearLayout style="@style/SettingsTextContainer">
-                            <TextView android:text="Папки чатов" style="@style/SettingsTitle"/>
-                            <TextView android:text="Сортировка по папкам" style="@style/SettingsSubtitle"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -126,42 +250,16 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Battery -->
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="ЭКОНОМИЯ ЭНЕРГИИ" android:textSize="12sp" android:textColor="#64748B" android:padding="8dp" android:layout_marginTop="16dp"/>
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp" app:cardCornerRadius="12dp">
-                <LinearLayout android:id="@+id/btnBattery" style="@style/SettingsItem">
-                    <ImageView android:src="@android:drawable/ic_menu_save" style="@style/SettingsIcon"/>
-                    <LinearLayout style="@style/SettingsTextContainer">
-                        <TextView android:text="Экономия энергии" style="@style/SettingsTitle"/>
-                        <TextView android:text="Отключение анимаций" style="@style/SettingsSubtitle"/>
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- VPN Status -->
-            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_margin="8dp" app:cardBackgroundColor="#ECFDF5" app:cardCornerRadius="12dp">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
-                    <TextView android:id="@+id/tvVpnStatus" android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:text="VPN: Проверка..." android:textSize="14sp" android:textColor="#047857"/>
-                    <ImageView android:id="@+id/ivVpnIcon" android:layout_width="24dp" android:layout_height="24dp"
-                        android:src="@android:drawable/ic_lock_lock"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
             <!-- Call Recording -->
             <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp" android:layout_marginTop="8dp" app:cardCornerRadius="12dp">
+                android:layout_margin="8dp" app:cardCornerRadius="12dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Запись звонков" android:textSize="16sp" android:textColor="#1E293B"/>
+                            android:text="Запись звонков" android:textSize="16sp" android:textColor="@color/text_primary"/>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Автозапись голосовых и видеозвонков" android:textSize="13sp" android:textColor="#64748B" android:layout_marginTop="2dp"/>
+                            android:text="Автозапись голосовых и видеозвонков" android:textSize="13sp" android:textColor="@color/text_secondary" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <androidx.appcompat.widget.SwitchCompat android:id="@+id/switchCallRecording"
                         android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true"/>

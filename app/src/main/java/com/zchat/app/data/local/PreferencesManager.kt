@@ -34,6 +34,12 @@ class PreferencesManager(context: Context) {
     fun updateBatterySaverMode(mode: Int) { updateSettings(_settings.value.copy(batterySaverMode = mode)) }
     fun updatePremium(enabled: Boolean) { updateSettings(_settings.value.copy(premiumEnabled = enabled)) }
     fun updateAutoTranslate(enabled: Boolean) { updateSettings(_settings.value.copy(autoTranslate = enabled)) }
+    fun updateLanguage(lang: String) { updateSettings(_settings.value.copy(language = lang)) }
+    
+    // Draft system for messages
+    fun saveDraft(chatId: String, draft: String) { prefs.edit().putString("draft_$chatId", draft).apply() }
+    fun getDraft(chatId: String): String = prefs.getString("draft_$chatId", "") ?: ""
+    fun clearDraft(chatId: String) { prefs.edit().remove("draft_$chatId").apply() }
     
     fun isCallRecordingEnabled(): Boolean = prefs.getBoolean("call_recording_enabled", true)
     fun setCallRecordingEnabled(enabled: Boolean) { prefs.edit().putBoolean("call_recording_enabled", enabled).apply() }
