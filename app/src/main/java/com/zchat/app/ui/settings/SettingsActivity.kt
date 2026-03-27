@@ -118,6 +118,7 @@ class SettingsActivity : AppCompatActivity() {
         val designName = when (ThemeManager.getDesign()) {
             ThemeManager.DESIGN_MODERN -> "Современный"
             ThemeManager.DESIGN_NEON -> "Neon"
+            ThemeManager.DESIGN_CHILD -> "Drawn by a child"
             else -> "Классический"
         }
         binding.tvCurrentDesign.text = designName
@@ -166,7 +167,7 @@ class SettingsActivity : AppCompatActivity() {
         
         val values = ContentValues()
         values.put(MediaStore.Images.Media.TITLE, "Profile Photo")
-        values.put(MediaStore.Images.Media.DESCRIPTION, "ZChat Profile Photo")
+        values.put(MediaStore.Images.Media.DESCRIPTION, "GOODOK Profile Photo")
         currentPhotoUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
         
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -287,7 +288,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showPremiumDialog() {
         AlertDialog.Builder(this)
-            .setTitle("⭐ ZChat Premium")
+            .setTitle("⭐ GOODOK Premium")
             .setMessage("Автоперевод сообщений\nСмена иконки приложения\nЭксклюзивные функции\n\n299 ₽/месяц")
             .setPositiveButton("Оформить") { _, _ ->
                 repository.preferencesManager.updatePremium(true)

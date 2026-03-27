@@ -1,6 +1,6 @@
 {
-  "name": "zchat-functions",
-  "description": "Cloud Functions for ZChat messenger",
+  "name": "goodok-functions",
+  "description": "Cloud Functions for GOODOK messenger",
   "version": "1.0.0",
   "engines": {
     "node": "18"

@@ -6,17 +6,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Менеджер тем для переключения между дизайнами ZChat.
- * Поддерживает три стиля оформления:
+ * Менеджер тем для переключения между дизайнами GOODOK.
+ * Поддерживает четыре стиля оформления:
  * - Дизайн 1: Классический (индиго/фиолетовый)
  * - Дизайн 2: Современный (синий/розовый)
  * - Дизайн 3: Neon (фиолетово-синий градиент)
+ * - Дизайн 4: Drawn by a child (детский рисунок)
  */
 object ThemeManager {
     
     const val DESIGN_CLASSIC = 1
     const val DESIGN_MODERN = 2
     const val DESIGN_NEON = 3
+    const val DESIGN_CHILD = 4
     
     private const val PREFS_NAME = "theme_prefs"
     private const val KEY_DESIGN = "selected_design"
@@ -44,6 +46,8 @@ object ThemeManager {
     
     fun isNeonDesign(): Boolean = _currentDesign.value == DESIGN_NEON
     
+    fun isChildDesign(): Boolean = _currentDesign.value == DESIGN_CHILD
+    
     /**
      * Возвращает цвета для текущего дизайна
      */
@@ -51,6 +55,7 @@ object ThemeManager {
         return when (_currentDesign.value) {
             DESIGN_MODERN -> getModernColors()
             DESIGN_NEON -> getNeonColors()
+            DESIGN_CHILD -> getChildColors()
             else -> getClassicColors()
         }
     }
@@ -118,6 +123,28 @@ object ThemeManager {
             fabBackground = "#6C5CE7",
             gradientStart = "#6C5CE7",     // Градиент для профиля
             gradientEnd = "#A29BFE"
+        )
+    }
+    
+    private fun getChildColors(): ThemeColors {
+        return ThemeColors(
+            primary = "#5DADE2",           // Светло-голубой (light blue)
+            primaryDark = "#3498DB",
+            primaryLight = "#85C1E9",
+            background = "#FEF9E7",        // Светло-желтоватый (как бумага для рисования)
+            surface = "#FFFFFF",
+            sentMessage = "#AF7AC5",       // Фиолетовый (как на рисунке)
+            sentMessageText = "#FFFFFF",
+            receivedMessage = "#FFFFFF",   // Белый с рамкой
+            receivedMessageText = "#2C3E50",
+            accent = "#F4D03F",            // Желтый акцент
+            onlineIndicator = "#58D68D",   // Ярко-зеленый
+            textPrimary = "#2C3E50",       // Темно-синий текст
+            textSecondary = "#5D6D7E",
+            divider = "#AED6F1",           // Светло-голубой
+            fabBackground = "#F4D03F",     // Желтый FAB
+            gradientStart = "#5DADE2",     // Голубой градиент
+            gradientEnd = "#AF7AC5"        // Фиолетовый
         )
     }
 }

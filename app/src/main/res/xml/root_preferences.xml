@@ -70,7 +70,7 @@
             android:summary="Проверять использование VPN"/>
         <Preference
             android:key="premium"
-            android:title="ZChat Premium"
+            android:title="GOODOK Premium"
             android:summary="Разблокировать все функции"/>
     </PreferenceCategory>
 

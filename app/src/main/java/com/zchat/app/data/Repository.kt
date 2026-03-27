@@ -35,7 +35,7 @@ class Repository(context: Context) {
             database = Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
-                "zchat_db"
+                "goodok_db"
             ).fallbackToDestructiveMigration().build()
             dao = database?.chatDao()
             Log.d("Repository", "Database initialized successfully")

@@ -188,7 +188,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="⭐ ZChat Premium" android:textSize="18sp" android:textStyle="bold" android:textColor="#92400E"/>
+                        android:text="⭐ GOODOK Premium" android:textSize="18sp" android:textStyle="bold" android:textColor="#92400E"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="Автоперевод • Смена иконки • Эксклюзивные функции" android:textSize="14sp" android:textColor="#B45309" android:layout_marginTop="4dp"/>
                     <Button android:id="@+id/btnGetPremium" android:layout_width="wrap_content" android:layout_height="wrap_content"

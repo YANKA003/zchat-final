@@ -166,6 +166,7 @@
                 android:id="@+id/cardDesign3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 android:foreground="?attr/selectableItemBackground">
@@ -221,6 +222,69 @@
                         android:src="@drawable/preview_design3"
                         android:background="#F1F5F9"
                         android:contentDescription="Neon дизайн"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Design 4 Preview (Drawn by a child) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardDesign4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:foreground="?attr/selectableItemBackground">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Drawn by a child"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#1E293B"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Голубой • Фиолетовый • Желтый"
+                                android:textSize="12sp"
+                                android:textColor="#64748B"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+
+                        <RadioButton
+                            android:id="@+id/rbDesign4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="false"/>
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/ivPreview4"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:layout_marginTop="12dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/preview_design4"
+                        android:background="#F1F5F9"
+                        android:contentDescription="Drawn by a child дизайн"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

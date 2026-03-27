@@ -40,4 +40,10 @@
     <!-- Neon design colors -->
     <color name="neon_purple">#6C5CE7</color>
     <color name="neon_blue">#A29BFE</color>
+    
+    <!-- Child design colors (Drawn by a child) -->
+    <color name="child_blue">#5DADE2</color>
+    <color name="child_purple">#AF7AC5</color>
+    <color name="child_yellow">#F4D03F</color>
+    <color name="child_paper">#FEF9E7</color>
 </resources>

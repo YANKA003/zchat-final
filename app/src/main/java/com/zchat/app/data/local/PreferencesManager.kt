@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class PreferencesManager(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("zchat_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences("goodok_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     
     private val _settings = MutableStateFlow(loadSettings())

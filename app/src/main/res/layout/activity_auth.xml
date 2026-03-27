@@ -10,7 +10,7 @@
         android:id="@+id/tvLogo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ZChat"
+        android:text="GOODOK"
         android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="@color/primary"
