@@ -3,6 +3,7 @@ package com.zchat.app.ui.auth
 import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -43,13 +44,23 @@ class AuthActivity : AppCompatActivity() {
         binding = ActivityAuthBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        repository = Repository(applicationContext)
+        try {
+            repository = Repository(applicationContext)
+        } catch (e: Exception) {
+            Log.e("AuthActivity", "Error initializing repository", e)
+            Toast.makeText(this, "Initialization error: ${e.message}", Toast.LENGTH_LONG).show()
+            return
+        }
 
         // Check if already logged in
-        if (repository.currentUser != null) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-            return
+        try {
+            if (repository.currentUser != null) {
+                Log.d("AuthActivity", "User already logged in, going to MainActivity")
+                goToMainActivity()
+                return
+            }
+        } catch (e: Exception) {
+            Log.e("AuthActivity", "Error checking current user", e)
         }
 
         setupSpinners()
@@ -72,13 +83,25 @@ class AuthActivity : AppCompatActivity() {
         }
     }
 
+    private fun goToMainActivity() {
+        try {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        } catch (e: Exception) {
+            Log.e("AuthActivity", "Error going to MainActivity", e)
+            Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun applyLanguage() {
         try {
             val prefs = getSharedPreferences("goodok_prefs", MODE_PRIVATE)
             val language = prefs.getString("language", "en") ?: "en"
             LanguageHelper.setLanguage(this, language)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("AuthActivity", "Error applying language", e)
         }
     }
 
@@ -169,17 +192,23 @@ class AuthActivity : AppCompatActivity() {
 
                 result.fold(
                     onSuccess = {
-                        repository.setOnlineStatus(true)
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
+                        Log.d("AuthActivity", "Login successful")
+                        try {
+                            repository.setOnlineStatus(true)
+                        } catch (e: Exception) {
+                            Log.e("AuthActivity", "Error setting online status", e)
+                        }
+                        goToMainActivity()
                     },
                     onFailure = { e ->
-                        Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("AuthActivity", "Login failed", e)
+                        Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 )
             } catch (e: Exception) {
                 showLoading(false)
-                Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("AuthActivity", "Login exception", e)
+                Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -217,22 +246,29 @@ class AuthActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
+                Log.d("AuthActivity", "Starting registration for $email")
                 val result = repository.registerWithPhone(email, password, username, phone)
                 showLoading(false)
 
                 result.fold(
-                    onSuccess = {
-                        repository.setOnlineStatus(true)
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
+                    onSuccess = { user ->
+                        Log.d("AuthActivity", "Registration successful: ${user.uid}")
+                        try {
+                            repository.setOnlineStatus(true)
+                        } catch (e: Exception) {
+                            Log.e("AuthActivity", "Error setting online status", e)
+                        }
+                        goToMainActivity()
                     },
                     onFailure = { e ->
-                        Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("AuthActivity", "Registration failed", e)
+                        Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 )
             } catch (e: Exception) {
                 showLoading(false)
-                Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("AuthActivity", "Registration exception", e)
+                Toast.makeText(this@AuthActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

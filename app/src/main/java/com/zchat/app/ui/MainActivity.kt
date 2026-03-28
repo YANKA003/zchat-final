@@ -47,12 +47,25 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        repository = Repository(applicationContext)
+        try {
+            repository = Repository(applicationContext)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error initializing repository", e)
+            Toast.makeText(this, "Initialization error", Toast.LENGTH_LONG).show()
+            goToAuth()
+            return
+        }
 
         // Check if logged in
-        if (repository.currentUser == null) {
-            startActivity(Intent(this, AuthActivity::class.java))
-            finish()
+        try {
+            if (repository.currentUser == null) {
+                Log.d("MainActivity", "No user logged in, going to Auth")
+                goToAuth()
+                return
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error checking user", e)
+            goToAuth()
             return
         }
 
@@ -63,6 +76,17 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupUserList()
         loadUsers()
+    }
+
+    private fun goToAuth() {
+        try {
+            val intent = Intent(this, AuthActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error going to auth", e)
+        }
     }
 
     private fun applyLanguage() {
@@ -102,22 +126,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupNavigation() {
         binding.navView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
+            try {
+                when (menuItem.itemId) {
+                    R.id.nav_settings -> {
+                        startActivity(Intent(this, SettingsActivity::class.java))
+                    }
+                    R.id.nav_premium -> {
+                        val intent = Intent(this, SettingsActivity::class.java)
+                        intent.putExtra("show_premium", true)
+                        startActivity(intent)
+                    }
+                    R.id.nav_logout -> {
+                        repository.logout()
+                        goToAuth()
+                    }
                 }
-                R.id.nav_premium -> {
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    intent.putExtra("show_premium", true)
-                    startActivity(intent)
-                }
-                R.id.nav_logout -> {
-                    repository.logout()
-                    val intent = Intent(this, AuthActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                    finish()
-                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Navigation error", e)
+                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true
@@ -129,21 +155,26 @@ class MainActivity : AppCompatActivity() {
         if (currentTheme >= 2) {
             binding.bottomNavigation.visibility = View.VISIBLE
             binding.bottomNavigation.setOnItemSelectedListener { item ->
-                when (item.itemId) {
-                    R.id.nav_chats -> true
-                    R.id.nav_calls -> {
-                        startActivity(Intent(this, CallsActivity::class.java))
-                        true
+                try {
+                    when (item.itemId) {
+                        R.id.nav_chats -> true
+                        R.id.nav_calls -> {
+                            startActivity(Intent(this, CallsActivity::class.java))
+                            true
+                        }
+                        R.id.nav_channels -> {
+                            startActivity(Intent(this, ChannelsActivity::class.java))
+                            true
+                        }
+                        R.id.nav_contacts -> {
+                            startActivity(Intent(this, ContactsActivity::class.java))
+                            true
+                        }
+                        else -> false
                     }
-                    R.id.nav_channels -> {
-                        startActivity(Intent(this, ChannelsActivity::class.java))
-                        true
-                    }
-                    R.id.nav_contacts -> {
-                        startActivity(Intent(this, ContactsActivity::class.java))
-                        true
-                    }
-                    else -> false
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Bottom nav error", e)
+                    false
                 }
             }
         } else {
@@ -202,15 +233,17 @@ class MainActivity : AppCompatActivity() {
                         binding.tvEmpty.text = getString(R.string.no_contacts)
                     },
                     onFailure = { e ->
-                        Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("MainActivity", "Error finding users", e)
+                        binding.progressBar.visibility = View.GONE
                         binding.tvEmpty.visibility = View.VISIBLE
+                        binding.tvEmpty.text = "Error: ${e.message}"
                     }
                 )
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error loading users", e)
                 binding.progressBar.visibility = View.GONE
                 binding.tvEmpty.visibility = View.VISIBLE
-                Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                binding.tvEmpty.text = "Error: ${e.message}"
             }
         }
     }
