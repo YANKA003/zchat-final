@@ -6,6 +6,7 @@ import com.zchat.app.data.model.AppSettings
 class PreferencesManager(context: Context) {
     private val prefs = context.getSharedPreferences("goodok_prefs", Context.MODE_PRIVATE)
 
+    // Session data (cleared on logout)
     var currentUserId: String?
         get() = prefs.getString("current_user_id", null)
         set(value) = prefs.edit().putString("current_user_id", value).apply()
@@ -14,10 +15,24 @@ class PreferencesManager(context: Context) {
         get() = prefs.getString("current_user_email", null)
         set(value) = prefs.edit().putString("current_user_email", value).apply()
 
+    // Saved profile data (persisted across sessions)
+    var savedUsername: String
+        get() = prefs.getString("saved_username", "") ?: ""
+        set(value) = prefs.edit().putString("saved_username", value).apply()
+
+    var savedPhone: String
+        get() = prefs.getString("saved_phone", "") ?: ""
+        set(value) = prefs.edit().putString("saved_phone", value).apply()
+
+    var savedAvatarUrl: String
+        get() = prefs.getString("saved_avatar_url", "") ?: ""
+        set(value) = prefs.edit().putString("saved_avatar_url", value).apply()
+
     var currentUsername: String?
         get() = prefs.getString("current_username", null)
         set(value) = prefs.edit().putString("current_username", value).apply()
 
+    // App settings (persisted)
     var theme: Int
         get() = prefs.getInt("theme", 0)
         set(value) = prefs.edit().putInt("theme", value).apply()
@@ -42,6 +57,7 @@ class PreferencesManager(context: Context) {
         get() = prefs.getString("target_language", "en") ?: "en"
         set(value) = prefs.edit().putString("target_language", value).apply()
 
+    // Premium settings (persisted)
     var isPremium: Boolean
         get() = prefs.getBoolean("is_premium", false)
         set(value) = prefs.edit().putBoolean("is_premium", value).apply()
@@ -74,6 +90,17 @@ class PreferencesManager(context: Context) {
         targetLanguage = settings.targetLanguage
     }
 
+    // Clear only session data, keep settings and profile
+    fun clearSession() {
+        prefs.edit().apply {
+            remove("current_user_id")
+            remove("current_user_email")
+            remove("current_username")
+            // Keep: theme, language, saved_username, saved_phone, saved_avatar_url, premium settings, etc.
+        }.apply()
+    }
+
+    // Full clear (only for debugging or account deletion)
     fun clear() {
         prefs.edit().clear().apply()
     }

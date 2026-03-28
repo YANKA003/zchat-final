@@ -34,8 +34,10 @@ class Repository(context: Context) {
     }
 
     fun logout() {
+        // Don't clear all preferences - keep theme, language, and other settings
         firebaseService.logout()
-        prefsManager.clear()
+        // Only clear user-specific session data
+        prefsManager.clearSession()
     }
 
     // Users
@@ -58,6 +60,18 @@ class Repository(context: Context) {
     fun observeUserStatus(uid: String): Flow<User> {
         return firebaseService.observeUserStatus(uid)
     }
+
+    // Save user locally for caching
+    fun saveUserLocally(user: User) {
+        prefsManager.savedUsername = user.username
+        prefsManager.savedPhone = user.phoneNumber
+        prefsManager.savedAvatarUrl = user.avatarUrl
+    }
+
+    // Get cached user data
+    fun getSavedUsername(): String = prefsManager.savedUsername
+    fun getSavedPhone(): String = prefsManager.savedPhone
+    fun getSavedAvatarUrl(): String = prefsManager.savedAvatarUrl
 
     // Messages
     suspend fun sendMessage(message: Message): Result<Unit> {
