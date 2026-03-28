@@ -180,6 +180,10 @@ class Repository(context: Context) {
         contactDao.insertContacts(contacts)
     }
 
+    suspend fun deleteContact(contactId: String) {
+        contactDao.deleteContactById(contactId)
+    }
+
     // Settings
     var theme: Int
         get() = prefsManager.theme

@@ -82,6 +82,14 @@
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="ok">确定</string>
+    <string name="phone">电话</string>
+    <string name="enter_username">输入用户名</string>
+    <string name="enter_phone">输入电话号码</string>
+    <string name="description">描述</string>
+    <string name="enter_channel_name">输入频道名称</string>
+    <string name="enter_description">输入描述</string>
+    <string name="profile">个人资料</string>
+    <string name="create">创建</string>
     <string name="lang_english_us">English (US)</string>
     <string name="lang_english_uk">English (UK)</string>
     <string name="lang_french">Français</string>

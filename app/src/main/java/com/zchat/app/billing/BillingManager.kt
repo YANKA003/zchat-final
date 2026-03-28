@@ -47,9 +47,12 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
     sealed class PurchaseState {
         object Idle : PurchaseState()
         object Loading : PurchaseState()
-        data class Success(val sku: String) : PurchaseState()
+        data class Success(val sku: String, val productId: String = sku) : PurchaseState()
         data class Error(val message: String) : PurchaseState()
     }
+
+    // Cached product details for quick access
+    private val cachedProducts = mutableMapOf<String, ProductDetails>()
 
     init {
         initBillingClient()
@@ -79,21 +82,21 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
 
     fun getProducts(): List<ProductDetails> {
         val productList = listOf(
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_BASIC_MONTHLY)
-                .setProductType(ProductType.SUBS)
+                .setProductType(BillingClient.ProductType.SUBS)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_BASIC_FOREVER)
-                .setProductType(ProductType.INAPP)
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_GOODPLAN_MONTHLY)
-                .setProductType(ProductType.SUBS)
+                .setProductType(BillingClient.ProductType.SUBS)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_GOODPLAN_FOREVER)
-                .setProductType(ProductType.INAPP)
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build()
         )
 
@@ -108,16 +111,65 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
         return products
     }
 
-    fun purchase(activity: Activity, productDetails: ProductDetails) {
-        val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+    fun purchase(activity: Activity, productDetails: ProductDetails, offerToken: String? = null) {
+        val productDetailsParamsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(productDetails)
-            .build()
+        
+        // Add offer token for subscriptions
+        if (offerToken != null) {
+            productDetailsParamsBuilder.setOfferToken(offerToken)
+        }
+        
+        val productDetailsParams = productDetailsParamsBuilder.build()
 
         val billingFlowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(productDetailsParams))
             .build()
 
         billingClient?.launchBillingFlow(activity, billingFlowParams)
+    }
+
+    /**
+     * Query all products and cache them
+     */
+    fun queryAllProducts(onResult: ((List<ProductDetails>) -> Unit)? = null) {
+        val productList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(SKU_BASIC_MONTHLY)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(SKU_BASIC_FOREVER)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(SKU_GOODPLAN_MONTHLY)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(SKU_GOODPLAN_FOREVER)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        )
+
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build()
+
+        billingClient?.queryProductDetailsAsync(params) { _, productDetailsList ->
+            // Cache products
+            productDetailsList.forEach { details ->
+                cachedProducts[details.productId] = details
+            }
+            onResult?.invoke(productDetailsList)
+        }
+    }
+
+    /**
+     * Get cached product details by product ID
+     */
+    fun getProductDetails(productId: String): ProductDetails? {
+        return cachedProducts[productId]
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
@@ -174,7 +226,7 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
 
     fun restorePurchases(onRestored: (List<Purchase>) -> Unit) {
         billingClient?.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
-            .setProductType(ProductType.SUBS)
+            .setProductType(BillingClient.ProductType.SUBS)
             .build()) { _, purchasesList ->
             purchasesList.forEach { purchase ->
                 if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {

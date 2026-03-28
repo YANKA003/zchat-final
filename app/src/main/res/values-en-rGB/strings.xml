@@ -82,6 +82,14 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="phone">Phone</string>
+    <string name="enter_username">Enter username</string>
+    <string name="enter_phone">Enter phone number</string>
+    <string name="description">Description</string>
+    <string name="enter_channel_name">Enter channel name</string>
+    <string name="enter_description">Enter description</string>
+    <string name="profile">Profile</string>
+    <string name="create">Create</string>
     <string name="lang_english_us">English (US)</string>
     <string name="lang_english_uk">English (UK)</string>
     <string name="lang_french">Français</string>

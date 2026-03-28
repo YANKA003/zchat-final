@@ -92,6 +92,9 @@ interface ContactDao {
     @Query("SELECT * FROM contacts ORDER BY displayName ASC")
     suspend fun getAllContacts(): List<Contact>
 
+    @Query("SELECT * FROM contacts WHERE id = :contactId")
+    suspend fun getContactById(contactId: String): Contact?
+
     @Query("SELECT * FROM contacts WHERE displayName LIKE '%' || :query || '%'")
     suspend fun searchContacts(query: String): List<Contact>
 
@@ -106,6 +109,9 @@ interface ContactDao {
 
     @Delete
     suspend fun deleteContact(contact: Contact)
+
+    @Query("DELETE FROM contacts WHERE id = :contactId")
+    suspend fun deleteContactById(contactId: String)
 
     @Query("DELETE FROM contacts")
     suspend fun deleteAllContacts()

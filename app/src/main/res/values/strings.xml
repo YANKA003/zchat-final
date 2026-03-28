@@ -104,6 +104,12 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="phone">Phone</string>
+    <string name="enter_username">Enter username</string>
+    <string name="enter_phone">Enter phone number</string>
+    <string name="description">Description</string>
+    <string name="enter_channel_name">Enter channel name</string>
+    <string name="enter_description">Enter description</string>
 
     <!-- Languages -->
     <string name="lang_en">English (US)</string>

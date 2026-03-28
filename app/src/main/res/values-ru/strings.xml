@@ -82,6 +82,14 @@
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="ok">ОК</string>
+    <string name="phone">Телефон</string>
+    <string name="enter_username">Введите имя пользователя</string>
+    <string name="enter_phone">Введите номер телефона</string>
+    <string name="description">Описание</string>
+    <string name="enter_channel_name">Введите название канала</string>
+    <string name="enter_description">Введите описание</string>
+    <string name="profile">Профиль</string>
+    <string name="create">Создать</string>
     <string name="lang_english_us">English (US)</string>
     <string name="lang_english_uk">English (UK)</string>
     <string name="lang_french">Français</string>

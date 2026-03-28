@@ -70,10 +70,16 @@ class ContactsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ContactsAdapter { contact ->
-            // Handle contact click
-            onContactClick(contact)
-        }
+        adapter = ContactsAdapter(
+            onEdit = { contact ->
+                // Handle contact edit
+                onContactClick(contact)
+            },
+            onDelete = { contact ->
+                // Handle contact delete
+                onDeleteContact(contact)
+            }
+        )
         binding.rvContacts.layoutManager = LinearLayoutManager(this)
         binding.rvContacts.adapter = adapter
     }
@@ -81,6 +87,19 @@ class ContactsActivity : AppCompatActivity() {
     private fun onContactClick(contact: Contact) {
         // TODO: Open chat with contact if registered, or invite them
         android.widget.Toast.makeText(this, contact.displayName, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onDeleteContact(contact: Contact) {
+        // Delete contact from local database
+        lifecycleScope.launch {
+            try {
+                repository.deleteContact(contact.id)
+                // Refresh the list
+                loadContacts()
+            } catch (e: Exception) {
+                Log.e("ContactsActivity", "Error deleting contact", e)
+            }
+        }
     }
 
     private fun loadContacts() {

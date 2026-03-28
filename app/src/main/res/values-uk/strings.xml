@@ -104,6 +104,12 @@
     <string name="yes">Так</string>
     <string name="no">Ні</string>
     <string name="ok">ОК</string>
+    <string name="phone">Телефон</string>
+    <string name="enter_username">Введіть ім\'я користувача</string>
+    <string name="enter_phone">Введіть номер телефону</string>
+    <string name="description">Опис</string>
+    <string name="enter_channel_name">Введіть назву каналу</string>
+    <string name="enter_description">Введіть опис</string>
 
     <!-- Language display names -->
     <string name="lang_english_us">Англійська (США)</string>

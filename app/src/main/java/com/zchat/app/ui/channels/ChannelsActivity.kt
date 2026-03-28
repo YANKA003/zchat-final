@@ -68,10 +68,14 @@ class ChannelsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ChannelsAdapter { channel ->
-            // Handle channel click
-            onChannelClick(channel)
-        }
+        val userId = repository.currentUserId ?: ""
+        adapter = ChannelsAdapter(
+            currentUserId = userId,
+            onSubscribe = { channel ->
+                // Handle channel click
+                onChannelClick(channel)
+            }
+        )
         binding.rvChannels.layoutManager = LinearLayoutManager(this)
         binding.rvChannels.adapter = adapter
     }
@@ -130,14 +134,14 @@ class ChannelsActivity : AppCompatActivity() {
     }
 
     private fun showCreateChannelDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_create_channel, null)
+        val nameInput = dialogView.findViewById<android.widget.EditText>(R.id.etChannelName)
+        val descInput = dialogView.findViewById<android.widget.EditText>(R.id.etChannelDescription)
+
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle(getString(R.string.create_channel))
-            .setView(R.layout.dialog_create_channel)
+            .setView(dialogView)
             .setPositiveButton(getString(R.string.create)) { dialog, _ ->
-                val dialogView = (dialog as android.app.AlertDialog).findViewById<android.view.View>(android.R.id.content)
-                val nameInput = dialogView?.findViewById<android.widget.EditText>(R.id.etChannelName)
-                val descInput = dialogView?.findViewById<android.widget.EditText>(R.id.etChannelDescription)
-
                 val name = nameInput?.text?.toString()?.trim() ?: ""
                 val description = descInput?.text?.toString()?.trim() ?: ""
 
