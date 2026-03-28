@@ -19,6 +19,8 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAuthBinding
     private lateinit var repository: Repository
     private var isLoginMode = true
+    private var isLanguageSpinnerInitialized = false
+    private var isDesignSpinnerInitialized = false
 
     private val themes = arrayOf("Classic", "Modern", "Neon", "Drawn by a child")
     private val languages = arrayOf(
@@ -30,6 +32,10 @@ class AuthActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply language before creating view
+        val savedLanguage = Repository(applicationContext).language
+        LanguageHelper.setLanguage(this, savedLanguage)
+
         super.onCreate(savedInstanceState)
         binding = ActivityAuthBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -78,20 +84,23 @@ class AuthActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerLanguage.adapter = adapter
 
-        // Set current language
+        // Set current language WITHOUT triggering listener
         val currentLang = repository.language
         val langIndex = languageCodes.indexOf(currentLang)
         if (langIndex >= 0) {
-            binding.spinnerLanguage.setSelection(langIndex)
+            binding.spinnerLanguage.setSelection(langIndex, false)
         }
 
         binding.spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Skip first automatic selection
+                if (!isLanguageSpinnerInitialized) {
+                    isLanguageSpinnerInitialized = true
+                    return
+                }
                 val selectedLang = languageCodes[position]
                 repository.language = selectedLang
-                LanguageHelper.setLanguage(this@AuthActivity, selectedLang)
-                // Recreate activity to apply language
-                recreate()
+                // Don't recreate - language will be applied on next app start
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -110,11 +119,16 @@ class AuthActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerDesign.adapter = adapter
 
-        // Set current theme
-        binding.spinnerDesign.setSelection(repository.theme)
+        // Set current theme WITHOUT triggering listener
+        binding.spinnerDesign.setSelection(repository.theme, false)
 
         binding.spinnerDesign.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Skip first automatic selection
+                if (!isDesignSpinnerInitialized) {
+                    isDesignSpinnerInitialized = true
+                    return
+                }
                 repository.theme = position
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -141,9 +155,14 @@ class AuthActivity : AppCompatActivity() {
         }
 
         binding.progressBar.visibility = View.VISIBLE
+        binding.btnLogin.isEnabled = false
+        binding.btnRegister.isEnabled = false
+
         lifecycleScope.launch {
             val result = repository.login(email, password)
             binding.progressBar.visibility = View.GONE
+            binding.btnLogin.isEnabled = true
+            binding.btnRegister.isEnabled = true
 
             result.fold(
                 onSuccess = {
@@ -175,9 +194,14 @@ class AuthActivity : AppCompatActivity() {
         }
 
         binding.progressBar.visibility = View.VISIBLE
+        binding.btnLogin.isEnabled = false
+        binding.btnRegister.isEnabled = false
+
         lifecycleScope.launch {
             val result = repository.register(email, password, username)
             binding.progressBar.visibility = View.GONE
+            binding.btnLogin.isEnabled = true
+            binding.btnRegister.isEnabled = true
 
             result.fold(
                 onSuccess = {
