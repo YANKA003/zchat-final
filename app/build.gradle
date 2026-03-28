@@ -8,34 +8,17 @@ plugins {
 android {
     namespace 'com.zchat.app'
     compileSdk 34
-
     defaultConfig {
         applicationId "com.zchat.app"
         minSdk 24
         targetSdk 34
-        versionCode 2
-        versionName "3.0"
+        versionCode 1
+        versionName "2.0"
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
-    buildFeatures {
-        viewBinding true
-    }
+    buildTypes { release { minifyEnabled false } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    kotlinOptions { jvmTarget = '17' }
+    buildFeatures { viewBinding true }
 }
 
 dependencies {
@@ -45,30 +28,13 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
     implementation 'androidx.activity:activity-ktx:1.8.2'
-
-    // Room Database
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.room:room-ktx:2.6.1'
     kapt 'androidx.room:room-compiler:2.6.1'
-
-    // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-database-ktx'
-    implementation 'com.google.firebase:firebase-messaging-ktx'
-
-    // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'
-
-    // Gson
     implementation 'com.google.code.gson:gson:2.10.1'
-
-    // Glide for images
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-
-    // Billing
-    implementation 'com.android.billingclient:billing-ktx:6.1.0'
 }

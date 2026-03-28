@@ -44,14 +44,12 @@ object IconHelper {
             )
 
             // Determine which alias to enable based on theme
-            // For theme 0 (classic style in settings), use default icon
-            // For theme 1 (modern style), use modern icon
-            // etc.
             val enabledAlias = when (theme) {
-                0 -> ALIAS_DEFAULT  // Classic theme -> default icon
-                1 -> ALIAS_MODERN   // Modern theme -> modern icon
-                2 -> ALIAS_NEON     // Neon theme -> neon icon
-                3 -> ALIAS_CHILDISH // Childish theme -> childish icon
+                0 -> ALIAS_DEFAULT  // Default theme
+                1 -> ALIAS_CLASSIC  // Classic theme
+                2 -> ALIAS_MODERN   // Modern theme
+                3 -> ALIAS_NEON     // Neon theme
+                4 -> ALIAS_CHILDISH // Childish theme
                 else -> ALIAS_DEFAULT
             }
 

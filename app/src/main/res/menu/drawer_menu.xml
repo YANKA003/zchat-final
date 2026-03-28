@@ -1,15 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_settings"
-        android:icon="@android:drawable/ic_menu_manage"
-        android:title="@string/settings" />
-    <item
-        android:id="@+id/nav_premium"
-        android:icon="@android:drawable/star_on"
-        android:title="@string/premium" />
-    <item
-        android:id="@+id/nav_logout"
-        android:icon="@android:drawable/ic_menu_revert"
-        android:title="@string/logout" />
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/nav_settings" android:icon="@android:drawable/ic_menu_preferences" android:title="Настройки"/>
+        <item android:id="@+id/nav_premium" android:icon="@android:drawable/btn_star" android:title="Premium"/>
+        <item android:id="@+id/nav_logout" android:icon="@android:drawable/ic_menu_close_clear_cancel" android:title="Выйти"/>
+    </group>
 </menu>

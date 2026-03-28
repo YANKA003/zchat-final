@@ -13,13 +13,8 @@ data class User(
     val bio: String = "",
     val isOnline: Boolean = false,
     val lastSeen: Long = 0,
-    val isPremium: Boolean = false,
-    val premiumType: String = "", // "BASIC" or "GOODPLAN"
-    val premiumExpiry: Long = 0
-) {
-    // No-argument constructor required for Firebase
-    constructor() : this("", "", "", "", "", "", false, 0, false, "", 0)
-}
+    val isPremium: Boolean = false
+)
 
 @Entity(tableName = "messages")
 data class Message(
@@ -29,73 +24,33 @@ data class Message(
     val content: String,
     val timestamp: Long,
     val isRead: Boolean = false,
-    val isSynced: Boolean = false,
-    val isEdited: Boolean = false,
-    val isDeleted: Boolean = false
-) {
-    constructor() : this("", "", "", "", 0, false, false, false, false)
-}
+    val isSynced: Boolean = false
+)
 
 @Entity(tableName = "calls")
 data class Call(
     @PrimaryKey val id: String,
     val callerId: String,
-    val callerName: String = "",
-    val callerAvatar: String = "",
     val receiverId: String,
-    val receiverName: String = "",
     val timestamp: Long,
     val duration: Long = 0,
-    val type: String = "VOICE", // "VOICE" or "VIDEO"
-    val status: String = "ENDED", // "INCOMING", "OUTGOING", "MISSED", "ENDED"
+    val type: String = "VOICE",
     val isRecorded: Boolean = false,
     val recordingPath: String = ""
-) {
-    constructor() : this("", "", "", "", "", "", 0, 0, "VOICE", "ENDED", false, "")
-}
+)
 
-@Entity(tableName = "channels")
-data class Channel(
+@Entity(tableName = "chat_folders")
+data class ChatFolder(
     @PrimaryKey val id: String,
     val name: String,
-    val description: String = "",
-    val avatarUrl: String = "",
-    val ownerId: String,
-    val subscribersCount: Int = 0,
-    val createdAt: Long = System.currentTimeMillis()
-) {
-    constructor() : this("", "", "", "", "", 0, 0)
-}
-
-@Entity(tableName = "channel_messages")
-data class ChannelMessage(
-    @PrimaryKey val id: String,
-    val channelId: String,
-    val senderId: String,
-    val senderName: String = "",
-    val senderAvatar: String = "",
-    val content: String,
-    val timestamp: Long,
-    val isEdited: Boolean = false
-) {
-    constructor() : this("", "", "", "", "", "", 0, false)
-}
-
-@Entity(tableName = "contacts")
-data class Contact(
-    @PrimaryKey val id: String,
-    val userId: String, // Link to User in Firebase
-    val displayName: String,
-    val phoneNumber: String = "",
-    val avatarUrl: String = "",
-    val isRegistered: Boolean = false
-) {
-    constructor() : this("", "", "", "", "", false)
-}
+    val icon: String = "folder",
+    val includedChats: String = "",
+    val order: Int = 0
+)
 
 data class AppSettings(
-    val theme: Int = 0, // 0=Classic, 1=Modern, 2=Neon, 3=Childish
-    val language: String = "en",
+    val theme: Int = 0,
+    val designTheme: Int = 0, // 0=default, 1=classic, 2=modern, 3=neon, 4=childish
     val chatBackground: String = "default",
     val enableAnimations: Boolean = true,
     val showOnlineStatus: Boolean = true,
@@ -105,6 +60,7 @@ data class AppSettings(
     val notificationsEnabled: Boolean = true,
     val batterySaverMode: Int = 0,
     val batterySaverThreshold: Int = 30,
+    val premiumEnabled: Boolean = false,
     val autoTranslate: Boolean = false,
-    val targetLanguage: String = "en"
+    val targetLanguage: String = "ru"
 )
