@@ -59,9 +59,11 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun observeMessages() {
-        userId?.let { uid ->
-            lifecycleScope.launch {
-                repository.observeMessages(uid).collect { messages ->
+        val uid = userId ?: return
+        lifecycleScope.launch {
+            val flow = repository.observeMessages(uid)
+            if (flow != null) {
+                flow.collect { messages ->
                     adapter.submitList(messages)
                     if (messages.isNotEmpty()) {
                         binding.rvMessages.scrollToPosition(messages.size - 1)
@@ -73,9 +75,11 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun loadUserInfo() {
-        userId?.let { uid ->
-            lifecycleScope.launch {
-                repository.observeUserStatus(uid).collect { user ->
+        val uid = userId ?: return
+        lifecycleScope.launch {
+            val flow = repository.observeUserStatus(uid)
+            if (flow != null) {
+                flow.collect { user ->
                     otherUser = user
                     supportActionBar?.subtitle = if (user.isOnline) {
                         getString(R.string.online)

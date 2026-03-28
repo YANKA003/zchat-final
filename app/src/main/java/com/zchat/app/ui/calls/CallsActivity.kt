@@ -43,14 +43,20 @@ class CallsActivity : AppCompatActivity() {
         binding.progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
-            repository.observeCalls().collect { calls ->
+            val flow = repository.observeCalls()
+            if (flow != null) {
+                flow.collect { calls ->
+                    binding.progressBar.visibility = View.GONE
+
+                    // Sort by timestamp descending and format with Minsk timezone
+                    val sortedCalls = calls.sortedByDescending { it.timestamp }
+
+                    adapter.submitList(sortedCalls)
+                    binding.tvEmpty.visibility = if (sortedCalls.isEmpty()) View.VISIBLE else View.GONE
+                }
+            } else {
                 binding.progressBar.visibility = View.GONE
-
-                // Sort by timestamp descending and format with Minsk timezone
-                val sortedCalls = calls.sortedByDescending { it.timestamp }
-
-                adapter.submitList(sortedCalls)
-                binding.tvEmpty.visibility = if (sortedCalls.isEmpty()) View.VISIBLE else View.GONE
+                binding.tvEmpty.visibility = View.VISIBLE
             }
         }
     }
