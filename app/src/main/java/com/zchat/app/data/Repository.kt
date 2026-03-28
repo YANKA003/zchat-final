@@ -1,6 +1,7 @@
 package com.zchat.app.data
 
 import android.content.Context
+import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.zchat.app.data.local.*
 import com.zchat.app.data.model.*
@@ -8,7 +9,6 @@ import com.zchat.app.data.remote.FirebaseService
 import kotlinx.coroutines.flow.Flow
 
 class Repository(context: Context) {
-    private val firebaseService = FirebaseService()
     private val database = AppDatabase.getDatabase(context)
     private val prefsManager = PreferencesManager(context)
 
@@ -18,47 +18,68 @@ class Repository(context: Context) {
     private val channelDao = database.channelDao()
     private val contactDao = database.contactDao()
 
+    // Firebase service (may be null if not configured)
+    private var firebaseService: FirebaseService? = null
+
+    init {
+        try {
+            firebaseService = FirebaseService()
+        } catch (e: Exception) {
+            Log.e("Repository", "Firebase not initialized", e)
+        }
+    }
+
     val currentUser: FirebaseUser?
-        get() = firebaseService.currentUser
+        get() = try { firebaseService?.currentUser } catch (e: Exception) { null }
 
     val currentUserId: String?
-        get() = firebaseService.currentUserId
+        get() = try { firebaseService?.currentUserId } catch (e: Exception) { null }
 
     // Authentication
     suspend fun login(email: String, password: String): Result<FirebaseUser> {
-        return firebaseService.login(email, password)
+        return firebaseService?.login(email, password)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun register(email: String, password: String, username: String): Result<FirebaseUser> {
-        return firebaseService.register(email, password, username)
+        return firebaseService?.register(email, password, username)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     fun logout() {
-        // Don't clear all preferences - keep theme, language, and other settings
-        firebaseService.logout()
-        // Only clear user-specific session data
+        try {
+            firebaseService?.logout()
+        } catch (e: Exception) {
+            Log.e("Repository", "Error during logout", e)
+        }
         prefsManager.clearSession()
     }
 
     // Users
     suspend fun getUser(uid: String): User? {
-        return firebaseService.getUser(uid)
+        return try { firebaseService?.getUser(uid) } catch (e: Exception) { null }
     }
 
     suspend fun updateUser(user: User): Result<Unit> {
-        return firebaseService.updateUser(user)
+        return firebaseService?.updateUser(user)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun searchUsers(query: String): Result<List<User>> {
-        return firebaseService.searchUsers(query)
+        return firebaseService?.searchUsers(query)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     fun setOnlineStatus(isOnline: Boolean) {
-        currentUserId?.let { firebaseService.setOnlineStatus(it, isOnline) }
+        try {
+            currentUserId?.let { firebaseService?.setOnlineStatus(it, isOnline) }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error setting online status", e)
+        }
     }
 
-    fun observeUserStatus(uid: String): Flow<User> {
-        return firebaseService.observeUserStatus(uid)
+    fun observeUserStatus(uid: String): Flow<User>? {
+        return try { firebaseService?.observeUserStatus(uid) } catch (e: Exception) { null }
     }
 
     // Save user locally for caching
@@ -75,34 +96,34 @@ class Repository(context: Context) {
 
     // Messages
     suspend fun sendMessage(message: Message): Result<Unit> {
-        return firebaseService.sendMessage(message)
+        return firebaseService?.sendMessage(message)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun editMessage(messageId: String, receiverId: String, newContent: String): Result<Unit> {
         return currentUserId?.let {
-            firebaseService.editMessage(messageId, it, receiverId, newContent)
+            firebaseService?.editMessage(messageId, it, receiverId, newContent)
         } ?: Result.failure(Exception("Not logged in"))
     }
 
     suspend fun deleteMessage(messageId: String, receiverId: String): Result<Unit> {
         return currentUserId?.let {
-            firebaseService.deleteMessage(messageId, it, receiverId)
+            firebaseService?.deleteMessage(messageId, it, receiverId)
         } ?: Result.failure(Exception("Not logged in"))
     }
 
-    fun observeMessages(userId: String): Flow<List<Message>> {
-        return currentUserId?.let { firebaseService.observeMessages(it, userId) }
-            ?: throw IllegalStateException("Not logged in")
+    fun observeMessages(userId: String): Flow<List<Message>>? {
+        return currentUserId?.let { firebaseService?.observeMessages(it, userId) }
     }
 
     // Calls
     suspend fun saveCall(call: Call): Result<Unit> {
-        return firebaseService.saveCall(call)
+        return firebaseService?.saveCall(call)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
-    fun observeCalls(): Flow<List<Call>> {
-        return currentUserId?.let { firebaseService.observeCalls(it) }
-            ?: throw IllegalStateException("Not logged in")
+    fun observeCalls(): Flow<List<Call>>? {
+        return currentUserId?.let { firebaseService?.observeCalls(it) }
     }
 
     suspend fun getLocalCalls(): List<Call> {
@@ -115,15 +136,17 @@ class Repository(context: Context) {
 
     // Channels
     suspend fun createChannel(channel: Channel): Result<Unit> {
-        return firebaseService.createChannel(channel)
+        return firebaseService?.createChannel(channel)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun searchChannels(query: String): Result<List<Channel>> {
-        return firebaseService.searchChannels(query)
+        return firebaseService?.searchChannels(query)
+            ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun subscribeToChannel(channelId: String): Result<Unit> {
-        return currentUserId?.let { firebaseService.subscribeToChannel(channelId, it) }
+        return currentUserId?.let { firebaseService?.subscribeToChannel(channelId, it) }
             ?: Result.failure(Exception("Not logged in"))
     }
 
