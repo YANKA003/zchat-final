@@ -35,12 +35,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
-        android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
         app:layout_constraintStart_toEndOf="@id/tvAvatar"
         app:layout_constraintTop_toBottomOf="@id/tvChannelName" />
@@ -50,19 +48,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="4dp"
         android:textColor="@android:color/darker_gray"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
         app:layout_constraintStart_toEndOf="@id/tvAvatar"
-        app:layout_constraintTop_toBottomOf="@id/tvDescription"
-        app:layout_constraintBottom_toBottomOf="@id/tvAvatar" />
+        app:layout_constraintTop_toBottomOf="@id/tvDescription" />
 
     <Button
         android:id="@+id/btnSubscribe"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
-        android:minWidth="100dp"
         android:text="@string/subscribe"
         android:textSize="12sp"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"

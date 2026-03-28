@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">GOODOK</string>
+
+    <!-- Navigation -->
     <string name="chats">Чати</string>
     <string name="calls">Дзвінки</string>
     <string name="channels">Канали</string>
     <string name="contacts">Контакти</string>
     <string name="settings">Налаштування</string>
     <string name="premium">Преміум</string>
+
+    <!-- Auth -->
     <string name="login">Увійти</string>
     <string name="register">Реєстрація</string>
     <string name="email">Електронна пошта</string>
@@ -17,6 +22,8 @@
     <string name="no_account">Немає акаунту?</string>
     <string name="has_account">Вже є акаунт?</string>
     <string name="forgot_password">Забули пароль?</string>
+
+    <!-- Chat -->
     <string name="type_message">Напишіть повідомлення…</string>
     <string name="send">Надіслати</string>
     <string name="online">В мережі</string>
@@ -28,6 +35,8 @@
     <string name="copy_message">Копіювати повідомлення</string>
     <string name="message_edited">Редаговано</string>
     <string name="message_deleted">Повідомлення видалено</string>
+
+    <!-- Calls -->
     <string name="incoming_call">Вхідний дзвінок</string>
     <string name="outgoing_call">Вихідний дзвінок</string>
     <string name="missed_call">Пропущений дзвінок</string>
@@ -36,6 +45,8 @@
     <string name="call_ended">Дзвінок завершено</string>
     <string name="call_duration">Тривалість</string>
     <string name="no_call_history">Немає історії дзвінків</string>
+
+    <!-- Channels -->
     <string name="create_channel">Створити канал</string>
     <string name="channel_name">Назва каналу</string>
     <string name="channel_description">Опис</string>
@@ -44,6 +55,9 @@
     <string name="unsubscribe">Відписатися</string>
     <string name="subscribers">Підписники</string>
     <string name="no_channels">Каналів поки немає</string>
+    <string name="create">Створити</string>
+
+    <!-- Contacts -->
     <string name="search_contacts">Шукати контакти</string>
     <string name="import_contacts">Імпортувати контакти</string>
     <string name="edit_contact">Редагувати контакт</string>
@@ -51,6 +65,8 @@
     <string name="contact_name">Ім\'я контакту</string>
     <string name="no_contacts">Контактів поки немає</string>
     <string name="contacts_imported">Контакти імпортовано</string>
+
+    <!-- Settings -->
     <string name="theme">Тема</string>
     <string name="language">Мова</string>
     <string name="notifications">Сповіщення</string>
@@ -58,10 +74,14 @@
     <string name="account">Акаунт</string>
     <string name="logout">Вийти</string>
     <string name="design">Дизайн</string>
-    <string name="theme_classic">Класичний</string>
-    <string name="theme_modern">Сучасний</string>
+
+    <!-- Theme names -->
+    <string name="theme_classic">Класична</string>
+    <string name="theme_modern">Сучасна</string>
     <string name="theme_neon">Неон</string>
     <string name="theme_childish">Намальовано дитиною</string>
+
+    <!-- Premium -->
     <string name="premium_title">Оновити до Преміум</string>
     <string name="basic_plan">BASIC</string>
     <string name="goodplan">GOODPLAN</string>
@@ -71,6 +91,8 @@
     <string name="goodplan_features">• Все з BASIC\n• Запис дзвінків\n• Автопереклад\n• Виявлення VPN</string>
     <string name="subscribe_now">Підписатися</string>
     <string name="restore_purchase">Відновити покупку</string>
+
+    <!-- Common -->
     <string name="save">Зберегти</string>
     <string name="cancel">Скасувати</string>
     <string name="delete">Видалити</string>
@@ -82,14 +104,49 @@
     <string name="yes">Так</string>
     <string name="no">Ні</string>
     <string name="ok">ОК</string>
-    <string name="lang_english_us">English (US)</string>
-    <string name="lang_english_uk">English (UK)</string>
-    <string name="lang_french">Français</string>
-    <string name="lang_spanish">Español</string>
-    <string name="lang_portuguese">Português</string>
-    <string name="lang_chinese">中文</string>
-    <string name="lang_belarusian">Беларуская</string>
+
+    <!-- Language display names -->
+    <string name="lang_english_us">Англійська (США)</string>
+    <string name="lang_english_uk">Англійська (Велика Британія)</string>
+    <string name="lang_french">Французька</string>
+    <string name="lang_spanish">Іспанська</string>
+    <string name="lang_portuguese">Португальська</string>
+    <string name="lang_chinese">Китайська</string>
+    <string name="lang_belarusian">Білоруська</string>
     <string name="lang_ukrainian">Українська</string>
-    <string name="lang_russian">Русский</string>
-    <string name="lang_german">Deutsch</string>
+    <string name="lang_russian">Російська</string>
+    <string name="lang_german">Німецька</string>
+
+    <!-- Additional strings -->
+    <string name="call_recording">Запис дзвінків</string>
+    <string name="call_recording_desc">Записуйте ваші дзвінки</string>
+    <string name="change_photo">Змінити фото</string>
+    <string name="chat_settings">Налаштування чату</string>
+    <string name="choose_from_gallery">Вибрати з галереї</string>
+    <string name="copied">Скопійовано</string>
+    <string name="copy">Копіювати</string>
+    <string name="delete_confirm">Ви впевнені, що хочете видалити?</string>
+    <string name="design_child">Дитячий стиль</string>
+    <string name="design_classic">Класичний</string>
+    <string name="design_modern">Сучасний</string>
+    <string name="design_neon">Неон</string>
+    <string name="edited">Редаговано</string>
+    <string name="have_account">Вже є акаунт?</string>
+    <string name="importing_contacts">Імпорт контактів…</string>
+    <string name="new_chat">Новий чат</string>
+    <string name="no_messages">Повідомлень поки немає</string>
+    <string name="no_users">Користувачів не знайдено</string>
+    <string name="premium_features">Преміум функції</string>
+    <string name="premium_subscribe">Підписатися</string>
+    <string name="profile">Профіль</string>
+    <string name="remove_photo">Видалити фото</string>
+    <string name="retry">Повторити</string>
+    <string name="searching_friends">Пошук друзів…</string>
+    <string name="select_design">Вибрати дизайн</string>
+    <string name="select_language">Вибрати мову</string>
+    <string name="set_status">Встановити статус</string>
+    <string name="take_photo">Зробити фото</string>
+    <string name="users">Користувачі</string>
+    <string name="add_contact">Додати контакт</string>
+    <string name="unknown">Невідомо</string>
 </resources>

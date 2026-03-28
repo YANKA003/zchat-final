@@ -2,51 +2,91 @@ package com.zchat.app.util
 
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
+import android.os.Build
+import android.os.LocaleList
 import java.util.Locale
 
 object LanguageHelper {
+
+    /**
+     * Apply locale to context - returns new context with applied locale
+     */
     fun setLocale(context: Context, languageCode: String): Context {
-        val locale = when (languageCode) {
-            "en-rGB" -> Locale("en", "GB")
-            "fr" -> Locale("fr")
-            "es" -> Locale("es")
-            "pt" -> Locale("pt")
-            "zh" -> Locale("zh")
-            "be" -> Locale("be")
-            "uk" -> Locale("uk")
-            "ru" -> Locale("ru")
-            "de" -> Locale("de")
-            else -> Locale("en")
-        }
+        val locale = getLocale(languageCode)
 
         Locale.setDefault(locale)
+
         val config = Configuration(context.resources.configuration)
-        config.setLocale(locale)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(locale)
+            val localeList = LocaleList(locale)
+            LocaleList.setDefault(localeList)
+            config.setLocales(localeList)
+        } else {
+            config.locale = locale
+        }
+
         return context.createConfigurationContext(config)
     }
 
+    /**
+     * Apply language to context - updates resources directly
+     */
     fun setLanguage(context: Context, languageCode: String) {
-        val locale = when (languageCode) {
-            "en-rGB" -> Locale("en", "GB")
+        val locale = getLocale(languageCode)
+        Locale.setDefault(locale)
+
+        val resources: Resources = context.resources
+        val config: Configuration = resources.configuration
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.setLocale(locale)
+            val localeList = LocaleList(locale)
+            LocaleList.setDefault(localeList)
+            config.setLocales(localeList)
+        } else {
+            config.locale = locale
+        }
+
+        resources.updateConfiguration(config, resources.displayMetrics)
+    }
+
+    /**
+     * Get Locale from language code
+     */
+    private fun getLocale(languageCode: String): Locale {
+        return when (languageCode) {
+            "en-rGB", "en_gb" -> Locale("en", "GB")
             "fr" -> Locale("fr")
             "es" -> Locale("es")
             "pt" -> Locale("pt")
             "zh" -> Locale("zh")
-            "be" -> Locale("be")
-            "uk" -> Locale("uk")
-            "ru" -> Locale("ru")
-            "de" -> Locale("de")
-            else -> Locale("en")
+            "be" -> Locale("be", "BY")  // Belarusian
+            "uk" -> Locale("uk", "UA")  // Ukrainian
+            "ru" -> Locale("ru", "RU")  // Russian
+            "de" -> Locale("de", "DE")  // German
+            else -> Locale("en", "US")  // Default English US
         }
-
-        Locale.setDefault(locale)
-        val config = Configuration(context.resources.configuration)
-        config.setLocale(locale)
-        context.resources.updateConfiguration(config, context.resources.displayMetrics)
     }
 
-    fun getLanguageCode(context: Context): String {
-        return context.getSharedPreferences("goodok_prefs", Context.MODE_PRIVATE)
-            .getString("language", "en") ?: "en"
+    /**
+     * Get language name in its own language
+     */
+    fun getLanguageName(code: String): String {
+        return when (code) {
+            "en" -> "English (US)"
+            "en-rGB" -> "English (UK)"
+            "fr" -> "Français"
+            "es" -> "Español"
+            "pt" -> "Português"
+            "zh" -> "中文"
+            "be" -> "Беларуская"
+            "uk" -> "Українська"
+            "ru" -> "Русский"
+            "de" -> "Deutsch"
+            else -> "English (US)"
+        }
     }
 }

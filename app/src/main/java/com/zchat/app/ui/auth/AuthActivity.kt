@@ -2,7 +2,7 @@ package com.zchat.app.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.text.TextUtils
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -13,6 +13,7 @@ import com.zchat.app.R
 import com.zchat.app.data.Repository
 import com.zchat.app.databinding.ActivityAuthBinding
 import com.zchat.app.ui.MainActivity
+import com.zchat.app.util.LanguageHelper
 import kotlinx.coroutines.launch
 
 class AuthActivity : AppCompatActivity() {
@@ -34,6 +35,9 @@ class AuthActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply language BEFORE super.onCreate
+        applyLanguage()
+
         super.onCreate(savedInstanceState)
 
         binding = ActivityAuthBinding.inflate(layoutInflater)
@@ -49,7 +53,7 @@ class AuthActivity : AppCompatActivity() {
         }
 
         setupSpinners()
-        setMode(true) // Start in login mode
+        setMode(true)
 
         binding.btnLogin.setOnClickListener {
             if (isLoginMode) {
@@ -65,6 +69,16 @@ class AuthActivity : AppCompatActivity() {
             } else {
                 setMode(false)
             }
+        }
+    }
+
+    private fun applyLanguage() {
+        try {
+            val prefs = getSharedPreferences("goodok_prefs", MODE_PRIVATE)
+            val language = prefs.getString("language", "en") ?: "en"
+            LanguageHelper.setLanguage(this, language)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -86,7 +100,12 @@ class AuthActivity : AppCompatActivity() {
                     languageInitialized = true
                     return
                 }
-                repository.language = languageCodes[position]
+                val selectedLang = languageCodes[position]
+                repository.language = selectedLang
+                // Apply language immediately
+                LanguageHelper.setLanguage(this@AuthActivity, selectedLang)
+                // Recreate to apply new language
+                recreate()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -119,17 +138,14 @@ class AuthActivity : AppCompatActivity() {
     private fun setMode(loginMode: Boolean) {
         isLoginMode = loginMode
 
-        // Update title
         binding.tvTitle.text = if (loginMode) getString(R.string.login) else getString(R.string.register)
-
-        // Update buttons
         binding.btnLogin.text = getString(R.string.login)
         binding.btnRegister.text = getString(R.string.register)
 
-        // Show/hide registration fields
         val visibility = if (loginMode) View.GONE else View.VISIBLE
 
         binding.tilUsername.visibility = visibility
+        binding.tilPhone.visibility = visibility
         binding.tilConfirmPassword.visibility = visibility
         binding.tvDesignLabel.visibility = visibility
         binding.spinnerDesign.visibility = visibility
@@ -173,7 +189,9 @@ class AuthActivity : AppCompatActivity() {
         val password = binding.etPassword.text.toString().trim()
         val confirmPassword = binding.etConfirmPassword.text.toString().trim()
         val username = binding.etUsername.text.toString().trim()
+        val phone = binding.etPhone.text.toString().trim()
 
+        // Validation
         if (email.isEmpty() || password.isEmpty() || username.isEmpty()) {
             Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show()
             return
@@ -184,11 +202,22 @@ class AuthActivity : AppCompatActivity() {
             return
         }
 
+        if (password.length < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Phone is required for contact matching
+        if (phone.isEmpty()) {
+            Toast.makeText(this, getString(R.string.phone_number) + " is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         showLoading(true)
 
         lifecycleScope.launch {
             try {
-                val result = repository.register(email, password, username)
+                val result = repository.registerWithPhone(email, password, username, phone)
                 showLoading(false)
 
                 result.fold(
@@ -215,6 +244,7 @@ class AuthActivity : AppCompatActivity() {
         binding.etEmail.isEnabled = !show
         binding.etPassword.isEnabled = !show
         binding.etUsername.isEnabled = !show
+        binding.etPhone.isEnabled = !show
         binding.etConfirmPassword.isEnabled = !show
     }
 }

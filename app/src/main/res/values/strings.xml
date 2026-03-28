@@ -48,14 +48,14 @@
 
     <!-- Channels -->
     <string name="create_channel">Create channel</string>
-    <string name="edit_channel">Edit channel</string>
     <string name="channel_name">Channel name</string>
     <string name="channel_description">Description</string>
     <string name="search_channels">Search channels</string>
     <string name="subscribe">Subscribe</string>
     <string name="unsubscribe">Unsubscribe</string>
-    <string name="subscribers">Subscribers: %d</string>
+    <string name="subscribers">Subscribers</string>
     <string name="no_channels">No channels yet</string>
+    <string name="create">Create</string>
 
     <!-- Contacts -->
     <string name="search_contacts">Search contacts</string>
@@ -80,10 +80,6 @@
     <string name="theme_modern">Modern</string>
     <string name="theme_neon">Neon</string>
     <string name="theme_childish">Drawn by a child</string>
-    <string name="design_child">Child Style</string>
-    <string name="design_classic">Classic</string>
-    <string name="design_modern">Modern</string>
-    <string name="design_neon">Neon</string>
 
     <!-- Premium -->
     <string name="premium_title">Upgrade to Premium</string>
@@ -95,15 +91,12 @@
     <string name="goodplan_features">• All BASIC features\n• Call recording\n• Auto-translate messages\n• VPN detection for calls</string>
     <string name="subscribe_now">Subscribe now</string>
     <string name="restore_purchase">Restore purchase</string>
-    <string name="premium_features">Premium Features</string>
-    <string name="premium_subscribe">Subscribe</string>
 
     <!-- Common -->
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
-    <string name="create">Create</string>
     <string name="search">Search</string>
     <string name="loading">Loading…</string>
     <string name="error">Error</string>
@@ -123,6 +116,8 @@
     <string name="lang_uk">Українська</string>
     <string name="lang_ru">Русский</string>
     <string name="lang_de">Deutsch</string>
+
+    <!-- Language display names -->
     <string name="lang_english_us">English (US)</string>
     <string name="lang_english_uk">English (UK)</string>
     <string name="lang_french">Français</string>
@@ -134,7 +129,7 @@
     <string name="lang_russian">Русский</string>
     <string name="lang_german">Deutsch</string>
 
-    <!-- Additional strings for existing layouts -->
+    <!-- Additional strings -->
     <string name="call_recording">Call Recording</string>
     <string name="call_recording_desc">Record your phone calls</string>
     <string name="change_photo">Change Photo</string>
@@ -143,12 +138,18 @@
     <string name="copied">Copied</string>
     <string name="copy">Copy</string>
     <string name="delete_confirm">Are you sure you want to delete?</string>
+    <string name="design_child">Child Style</string>
+    <string name="design_classic">Classic</string>
+    <string name="design_modern">Modern</string>
+    <string name="design_neon">Neon</string>
     <string name="edited">Edited</string>
     <string name="have_account">Already have an account?</string>
     <string name="importing_contacts">Importing contacts…</string>
     <string name="new_chat">New Chat</string>
     <string name="no_messages">No messages yet</string>
     <string name="no_users">No users found</string>
+    <string name="premium_features">Premium Features</string>
+    <string name="premium_subscribe">Subscribe</string>
     <string name="profile">Profile</string>
     <string name="remove_photo">Remove Photo</string>
     <string name="retry">Retry</string>

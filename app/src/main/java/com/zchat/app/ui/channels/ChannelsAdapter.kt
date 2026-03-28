@@ -27,12 +27,8 @@ class ChannelsAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(channel: Channel) {
-            val context = binding.root.context
-
-            // Channel name
             binding.tvChannelName.text = channel.name
 
-            // Description
             if (channel.description.isNotEmpty()) {
                 binding.tvDescription.text = channel.description
                 binding.tvDescription.visibility = android.view.View.VISIBLE
@@ -45,16 +41,18 @@ class ChannelsAdapter(
             binding.tvAvatar.text = firstLetter
 
             // Subscribers count
-            binding.tvSubscribers.text = context.getString(R.string.subscribers, channel.subscribersCount)
+            binding.tvSubscribers.text = binding.root.context.getString(
+                R.string.subscribers,
+                channel.subscribersCount
+            )
 
-            // Subscribe button - check if user is owner
+            // Subscribe button
             val isOwner = channel.ownerId == currentUserId
             if (isOwner) {
-                binding.btnSubscribe.text = context.getString(R.string.edit_channel)
+                binding.btnSubscribe.text = binding.root.context.getString(R.string.edit)
                 binding.btnSubscribe.isEnabled = false
             } else {
-                binding.btnSubscribe.text = context.getString(R.string.subscribe)
-                binding.btnSubscribe.isEnabled = true
+                binding.btnSubscribe.text = binding.root.context.getString(R.string.subscribe)
                 binding.btnSubscribe.setOnClickListener { onSubscribe(channel) }
             }
         }

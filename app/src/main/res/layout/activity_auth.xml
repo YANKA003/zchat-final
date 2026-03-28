@@ -23,7 +23,7 @@
             android:textStyle="bold"
             android:textColor="@color/black"
             android:gravity="center"
-            android:layout_marginTop="32dp" />
+            android:layout_marginTop="24dp" />
 
         <TextView
             android:id="@+id/tvAppName"
@@ -33,7 +33,7 @@
             android:textSize="18sp"
             android:textColor="@color/text_secondary"
             android:gravity="center"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="4dp" />
 
         <!-- Language Selection -->
         <TextView
@@ -44,7 +44,7 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/black"
-            android:layout_marginTop="32dp" />
+            android:layout_marginTop="24dp" />
 
         <Spinner
             android:id="@+id/spinnerLanguage"
@@ -53,7 +53,7 @@
             android:background="@android:drawable/spinner_background"
             android:layout_marginTop="8dp" />
 
-        <!-- Design Selection -->
+        <!-- Design Selection (Registration only) -->
         <TextView
             android:id="@+id/tvDesignLabel"
             android:layout_width="match_parent"
@@ -73,7 +73,7 @@
             android:layout_marginTop="8dp"
             android:visibility="gone" />
 
-        <!-- Username (for registration) -->
+        <!-- Username (Registration only) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilUsername"
             android:layout_width="match_parent"
@@ -89,6 +89,26 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
                 android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Phone Number (Registration only) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/phone_number"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPhone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:singleLine="true"
+                android:hint="+375 XX XXX XXXX" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -129,7 +149,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Confirm Password (for registration) -->
+        <!-- Confirm Password (Registration only) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilConfirmPassword"
             android:layout_width="match_parent"

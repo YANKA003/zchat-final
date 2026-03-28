@@ -18,7 +18,7 @@ class Repository(context: Context) {
     private val channelDao = database.channelDao()
     private val contactDao = database.contactDao()
 
-    // Firebase service (may be null if not configured)
+    // Firebase service
     private var firebaseService: FirebaseService? = null
 
     init {
@@ -29,20 +29,24 @@ class Repository(context: Context) {
         }
     }
 
+    // Authentication
     val currentUser: FirebaseUser?
         get() = try { firebaseService?.currentUser } catch (e: Exception) { null }
 
     val currentUserId: String?
         get() = try { firebaseService?.currentUserId } catch (e: Exception) { null }
 
-    // Authentication
     suspend fun login(email: String, password: String): Result<FirebaseUser> {
         return firebaseService?.login(email, password)
             ?: Result.failure(Exception("Firebase not configured"))
     }
 
     suspend fun register(email: String, password: String, username: String): Result<FirebaseUser> {
-        return firebaseService?.register(email, password, username)
+        return registerWithPhone(email, password, username, "")
+    }
+
+    suspend fun registerWithPhone(email: String, password: String, username: String, phone: String): Result<FirebaseUser> {
+        return firebaseService?.registerWithPhone(email, password, username, phone)
             ?: Result.failure(Exception("Firebase not configured"))
     }
 
@@ -70,6 +74,12 @@ class Repository(context: Context) {
             ?: Result.failure(Exception("Firebase not configured"))
     }
 
+    // Find users by phone numbers (for contact matching)
+    suspend fun findUsersByPhones(phones: List<String>): Result<List<User>> {
+        return firebaseService?.findUsersByPhones(phones)
+            ?: Result.failure(Exception("Firebase not configured"))
+    }
+
     fun setOnlineStatus(isOnline: Boolean) {
         try {
             currentUserId?.let { firebaseService?.setOnlineStatus(it, isOnline) }
@@ -88,11 +98,6 @@ class Repository(context: Context) {
         prefsManager.savedPhone = user.phoneNumber
         prefsManager.savedAvatarUrl = user.avatarUrl
     }
-
-    // Get cached user data
-    fun getSavedUsername(): String = prefsManager.savedUsername
-    fun getSavedPhone(): String = prefsManager.savedPhone
-    fun getSavedAvatarUrl(): String = prefsManager.savedAvatarUrl
 
     // Messages
     suspend fun sendMessage(message: Message): Result<Unit> {
@@ -158,10 +163,6 @@ class Repository(context: Context) {
         channelDao.insertChannel(channel)
     }
 
-    suspend fun searchChannelsLocal(query: String): List<Channel> {
-        return channelDao.searchChannels(query)
-    }
-
     // Contacts
     suspend fun getLocalContacts(): List<Contact> {
         return contactDao.getAllContacts()
@@ -179,23 +180,7 @@ class Repository(context: Context) {
         contactDao.insertContacts(contacts)
     }
 
-    suspend fun updateContact(contact: Contact) {
-        contactDao.updateContact(contact)
-    }
-
-    suspend fun deleteContact(contact: Contact) {
-        contactDao.deleteContact(contact)
-    }
-
     // Settings
-    fun getSettings(): AppSettings {
-        return prefsManager.getSettings()
-    }
-
-    fun saveSettings(settings: AppSettings) {
-        prefsManager.saveSettings(settings)
-    }
-
     var theme: Int
         get() = prefsManager.theme
         set(value) { prefsManager.theme = value }

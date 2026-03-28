@@ -7,11 +7,13 @@ import com.zchat.app.util.LanguageHelper
 class ZChatApp : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        // Apply saved language
         try {
-            // Apply saved language
             val prefs = getSharedPreferences("goodok_prefs", MODE_PRIVATE)
             val language = prefs.getString("language", "en") ?: "en"
             LanguageHelper.setLanguage(this, language)
+            Log.d("ZChatApp", "Language applied: $language")
         } catch (e: Exception) {
             Log.e("ZChatApp", "Error applying language", e)
         }

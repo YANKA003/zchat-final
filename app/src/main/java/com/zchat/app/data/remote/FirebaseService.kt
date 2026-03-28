@@ -30,21 +30,40 @@ class FirebaseService {
     }
 
     suspend fun register(email: String, password: String, username: String): Result<FirebaseUser> {
+        return registerWithPhone(email, password, username, "")
+    }
+
+    suspend fun registerWithPhone(email: String, password: String, username: String, phone: String): Result<FirebaseUser> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user!!
+
+            // Create user profile in database
             val userProfile = User(
                 uid = user.uid,
                 email = email,
                 username = username,
+                phoneNumber = phone,
                 isOnline = true,
                 lastSeen = System.currentTimeMillis()
             )
             database.child("users").child(user.uid).setValue(userProfile).await()
+
+            // Also create phone lookup for contact matching
+            if (phone.isNotEmpty()) {
+                val normalizedPhone = normalizePhone(phone)
+                database.child("phone_lookup").child(normalizedPhone).setValue(user.uid).await()
+            }
+
             Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // Normalize phone number for matching
+    private fun normalizePhone(phone: String): String {
+        return phone.filter { it.isDigit() }
     }
 
     fun logout() {
@@ -64,6 +83,11 @@ class FirebaseService {
     suspend fun updateUser(user: User): Result<Unit> {
         return try {
             database.child("users").child(user.uid).setValue(user).await()
+            // Update phone lookup if phone changed
+            if (user.phoneNumber.isNotEmpty()) {
+                val normalizedPhone = normalizePhone(user.phoneNumber)
+                database.child("phone_lookup").child(normalizedPhone).setValue(user.uid).await()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -85,6 +109,26 @@ class FirebaseService {
         }
     }
 
+    // Find users by phone numbers (for contact matching)
+    suspend fun findUsersByPhones(phones: List<String>): Result<List<User>> {
+        return try {
+            val users = mutableListOf<User>()
+            for (phone in phones) {
+                val normalizedPhone = normalizePhone(phone)
+                val snapshot = database.child("phone_lookup").child(normalizedPhone).get().await()
+                val uid = snapshot.getValue(String::class.java)
+                if (uid != null) {
+                    val userSnapshot = database.child("users").child(uid).get().await()
+                    userSnapshot.getValue(User::class.java)?.let { users.add(it) }
+                }
+            }
+            Result.success(users)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Online status
     fun setOnlineStatus(uid: String, isOnline: Boolean) {
         database.child("users").child(uid).child("isOnline").setValue(isOnline)
         database.child("users").child(uid).child("lastSeen").setValue(System.currentTimeMillis())
@@ -94,7 +138,9 @@ class FirebaseService {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(User::class.java)
-                if (user != null) trySend(user)
+                if (user != null) {
+                    trySend(user)
+                }
             }
             override fun onCancelled(error: DatabaseError) {}
         }
@@ -155,9 +201,7 @@ class FirebaseService {
     // Calls
     suspend fun saveCall(call: Call): Result<Unit> {
         return try {
-            currentUserId?.let { uid ->
-                database.child("calls").child(uid).child(call.id).setValue(call).await()
-            }
+            database.child("calls").child(currentUserId!!).child(call.id).setValue(call).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

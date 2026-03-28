@@ -2,6 +2,7 @@ package com.zchat.app.ui.chats
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -15,6 +16,7 @@ import com.zchat.app.data.Repository
 import com.zchat.app.data.model.Message
 import com.zchat.app.data.model.User
 import com.zchat.app.databinding.ActivityChatBinding
+import com.zchat.app.util.LanguageHelper
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -27,7 +29,10 @@ class ChatActivity : AppCompatActivity() {
     private var otherUser: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage()
+        applyTheme()
         super.onCreate(savedInstanceState)
+
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -36,10 +41,7 @@ class ChatActivity : AppCompatActivity() {
         userId = intent.getStringExtra("userId")
         username = intent.getStringExtra("username")
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = username
-
+        setupToolbar()
         setupRecyclerView()
         observeMessages()
         loadUserInfo()
@@ -47,9 +49,39 @@ class ChatActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener { sendMessage() }
     }
 
+    private fun applyLanguage() {
+        try {
+            val repo = Repository(applicationContext)
+            LanguageHelper.setLanguage(this, repo.language)
+        } catch (e: Exception) {
+            Log.e("ChatActivity", "Error applying language", e)
+        }
+    }
+
+    private fun applyTheme() {
+        try {
+            val repo = Repository(applicationContext)
+            when (repo.theme) {
+                0 -> setTheme(R.style.Theme_GOODOK_Classic)
+                1 -> setTheme(R.style.Theme_GOODOK_Modern)
+                2 -> setTheme(R.style.Theme_GOODOK_Neon)
+                3 -> setTheme(R.style.Theme_GOODOK_Childish)
+            }
+        } catch (e: Exception) {
+            setTheme(R.style.Theme_GOODOK_Classic)
+        }
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = username ?: "Chat"
+    }
+
     private fun setupRecyclerView() {
+        val currentId = try { repository.currentUserId ?: "" } catch (e: Exception) { "" }
         adapter = MessagesAdapter(
-            currentUserId = repository.currentUserId ?: "",
+            currentUserId = currentId,
             onMessageLongClick = { message -> show_message_options(message) }
         )
         binding.rvMessages.layoutManager = LinearLayoutManager(this).apply {
@@ -61,15 +93,22 @@ class ChatActivity : AppCompatActivity() {
     private fun observeMessages() {
         val uid = userId ?: return
         lifecycleScope.launch {
-            val flow = repository.observeMessages(uid)
-            if (flow != null) {
-                flow.collect { messages ->
-                    adapter.submitList(messages)
-                    if (messages.isNotEmpty()) {
-                        binding.rvMessages.scrollToPosition(messages.size - 1)
+            try {
+                val flow = repository.observeMessages(uid)
+                if (flow != null) {
+                    flow.collect { messages ->
+                        adapter.submitList(messages)
+                        if (messages.isNotEmpty()) {
+                            binding.rvMessages.scrollToPosition(messages.size - 1)
+                        }
+                        binding.tvEmpty.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
                     }
-                    binding.tvEmpty.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
+                } else {
+                    binding.tvEmpty.visibility = View.VISIBLE
                 }
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Error observing messages", e)
+                binding.tvEmpty.visibility = View.VISIBLE
             }
         }
     }
@@ -77,21 +116,25 @@ class ChatActivity : AppCompatActivity() {
     private fun loadUserInfo() {
         val uid = userId ?: return
         lifecycleScope.launch {
-            val flow = repository.observeUserStatus(uid)
-            if (flow != null) {
-                flow.collect { user ->
-                    otherUser = user
-                    supportActionBar?.subtitle = if (user.isOnline) {
-                        getString(R.string.online)
-                    } else {
-                        if (user.lastSeen > 0) {
-                            val sdf = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-                            "${getString(R.string.last_seen)}: ${sdf.format(Date(user.lastSeen))}"
+            try {
+                val flow = repository.observeUserStatus(uid)
+                if (flow != null) {
+                    flow.collect { user ->
+                        otherUser = user
+                        supportActionBar?.subtitle = if (user.isOnline) {
+                            getString(R.string.online)
                         } else {
-                            getString(R.string.offline)
+                            if (user.lastSeen > 0) {
+                                val sdf = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                                "${getString(R.string.last_seen)}: ${sdf.format(Date(user.lastSeen))}"
+                            } else {
+                                getString(R.string.offline)
+                            }
                         }
                     }
                 }
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Error loading user info", e)
             }
         }
     }
@@ -100,22 +143,30 @@ class ChatActivity : AppCompatActivity() {
         val content = binding.etMessage.text.toString().trim()
         if (content.isEmpty() || userId == null) return
 
+        val senderId = try { repository.currentUserId } catch (e: Exception) { null } ?: return
+
         val message = Message(
             id = UUID.randomUUID().toString(),
-            senderId = repository.currentUserId ?: return,
+            senderId = senderId,
             receiverId = userId!!,
             content = content,
             timestamp = System.currentTimeMillis()
         )
 
         lifecycleScope.launch {
-            repository.sendMessage(message)
-            binding.etMessage.text?.clear()
+            try {
+                repository.sendMessage(message)
+                binding.etMessage.text?.clear()
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Error sending message", e)
+                Toast.makeText(this@ChatActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     private fun show_message_options(message: Message) {
-        if (message.senderId != repository.currentUserId) return
+        val currentId = try { repository.currentUserId } catch (e: Exception) { null }
+        if (message.senderId != currentId) return
 
         val options = arrayOf(
             getString(R.string.edit_message),
@@ -146,7 +197,11 @@ class ChatActivity : AppCompatActivity() {
                 val newContent = input.text.toString().trim()
                 if (newContent.isNotEmpty() && userId != null) {
                     lifecycleScope.launch {
-                        repository.editMessage(message.id, userId!!, newContent)
+                        try {
+                            repository.editMessage(message.id, userId!!, newContent)
+                        } catch (e: Exception) {
+                            Toast.makeText(this@ChatActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -157,11 +212,15 @@ class ChatActivity : AppCompatActivity() {
     private fun deleteMessage(message: Message) {
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_message)
-            .setMessage("Are you sure?")
+            .setMessage(getString(R.string.delete_confirm))
             .setPositiveButton(R.string.delete) { _, _ ->
                 userId?.let { uid ->
                     lifecycleScope.launch {
-                        repository.deleteMessage(message.id, uid)
+                        try {
+                            repository.deleteMessage(message.id, uid)
+                        } catch (e: Exception) {
+                            Toast.makeText(this@ChatActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -170,10 +229,14 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun copyMessage(message: Message) {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("message", message.content)
-        clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+        try {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("message", message.content)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(this, getString(R.string.copied), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("ChatActivity", "Error copying message", e)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -188,12 +251,10 @@ class ChatActivity : AppCompatActivity() {
                 true
             }
             R.id.action_call -> {
-                // TODO: Start voice call
                 Toast.makeText(this, "Voice call feature coming soon", Toast.LENGTH_SHORT).show()
                 true
             }
             R.id.action_video -> {
-                // TODO: Start video call
                 Toast.makeText(this, "Video call feature coming soon", Toast.LENGTH_SHORT).show()
                 true
             }
