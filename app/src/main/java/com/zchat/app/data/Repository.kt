@@ -25,10 +25,13 @@ class Repository(context: Context) {
         get() = firebaseService.currentUserId
 
     // Authentication
-    suspend fun login(email: String, password: String) = firebaseService.login(email, password)
+    suspend fun login(email: String, password: String): Result<FirebaseUser> {
+        return firebaseService.login(email, password)
+    }
 
-    suspend fun register(email: String, password: String, username: String) =
-        firebaseService.register(email, password, username)
+    suspend fun register(email: String, password: String, username: String): Result<FirebaseUser> {
+        return firebaseService.register(email, password, username)
+    }
 
     fun logout() {
         firebaseService.logout()
@@ -36,9 +39,13 @@ class Repository(context: Context) {
     }
 
     // Users
-    suspend fun getUser(uid: String) = firebaseService.getUser(uid)
+    suspend fun getUser(uid: String): User? {
+        return firebaseService.getUser(uid)
+    }
 
-    suspend fun updateUser(user: User) = firebaseService.updateUser(user)
+    suspend fun updateUser(user: User): Result<Unit> {
+        return firebaseService.updateUser(user)
+    }
 
     suspend fun searchUsers(query: String): Result<List<User>> {
         return firebaseService.searchUsers(query)
@@ -48,10 +55,14 @@ class Repository(context: Context) {
         currentUserId?.let { firebaseService.setOnlineStatus(it, isOnline) }
     }
 
-    fun observeUserStatus(uid: String): Flow<User> = firebaseService.observeUserStatus(uid)
+    fun observeUserStatus(uid: String): Flow<User> {
+        return firebaseService.observeUserStatus(uid)
+    }
 
     // Messages
-    suspend fun sendMessage(message: Message) = firebaseService.sendMessage(message)
+    suspend fun sendMessage(message: Message): Result<Unit> {
+        return firebaseService.sendMessage(message)
+    }
 
     suspend fun editMessage(messageId: String, receiverId: String, newContent: String): Result<Unit> {
         return currentUserId?.let {
@@ -71,50 +82,82 @@ class Repository(context: Context) {
     }
 
     // Calls
-    suspend fun saveCall(call: Call) = firebaseService.saveCall(call)
+    suspend fun saveCall(call: Call): Result<Unit> {
+        return firebaseService.saveCall(call)
+    }
 
     fun observeCalls(): Flow<List<Call>> {
         return currentUserId?.let { firebaseService.observeCalls(it) }
             ?: throw IllegalStateException("Not logged in")
     }
 
-    suspend fun getLocalCalls() = callDao.getAllCalls()
+    suspend fun getLocalCalls(): List<Call> {
+        return callDao.getAllCalls()
+    }
 
-    suspend fun saveCallLocal(call: Call) = callDao.insertCall(call)
+    suspend fun saveCallLocal(call: Call) {
+        callDao.insertCall(call)
+    }
 
     // Channels
-    suspend fun createChannel(channel: Channel) = firebaseService.createChannel(channel)
+    suspend fun createChannel(channel: Channel): Result<Unit> {
+        return firebaseService.createChannel(channel)
+    }
 
-    suspend fun searchChannels(query: String) = firebaseService.searchChannels(query)
+    suspend fun searchChannels(query: String): Result<List<Channel>> {
+        return firebaseService.searchChannels(query)
+    }
 
     suspend fun subscribeToChannel(channelId: String): Result<Unit> {
         return currentUserId?.let { firebaseService.subscribeToChannel(channelId, it) }
             ?: Result.failure(Exception("Not logged in"))
     }
 
-    suspend fun getLocalChannels() = channelDao.getAllChannels()
+    suspend fun getLocalChannels(): List<Channel> {
+        return channelDao.getAllChannels()
+    }
 
-    suspend fun saveChannelLocal(channel: Channel) = channelDao.insertChannel(channel)
+    suspend fun saveChannelLocal(channel: Channel) {
+        channelDao.insertChannel(channel)
+    }
 
-    suspend fun searchChannelsLocal(query: String) = channelDao.searchChannels(query)
+    suspend fun searchChannelsLocal(query: String): List<Channel> {
+        return channelDao.searchChannels(query)
+    }
 
     // Contacts
-    suspend fun getLocalContacts() = contactDao.getAllContacts()
+    suspend fun getLocalContacts(): List<Contact> {
+        return contactDao.getAllContacts()
+    }
 
-    suspend fun searchContactsLocal(query: String) = contactDao.searchContacts(query)
+    suspend fun searchContactsLocal(query: String): List<Contact> {
+        return contactDao.searchContacts(query)
+    }
 
-    suspend fun saveContact(contact: Contact) = contactDao.insertContact(contact)
+    suspend fun saveContact(contact: Contact) {
+        contactDao.insertContact(contact)
+    }
 
-    suspend fun saveContacts(contacts: List<Contact>) = contactDao.insertContacts(contacts)
+    suspend fun saveContacts(contacts: List<Contact>) {
+        contactDao.insertContacts(contacts)
+    }
 
-    suspend fun updateContact(contact: Contact) = contactDao.updateContact(contact)
+    suspend fun updateContact(contact: Contact) {
+        contactDao.updateContact(contact)
+    }
 
-    suspend fun deleteContact(contact: Contact) = contactDao.deleteContact(contact)
+    suspend fun deleteContact(contact: Contact) {
+        contactDao.deleteContact(contact)
+    }
 
     // Settings
-    fun getSettings() = prefsManager.getSettings()
+    fun getSettings(): AppSettings {
+        return prefsManager.getSettings()
+    }
 
-    fun saveSettings(settings: AppSettings) = prefsManager.saveSettings(settings)
+    fun saveSettings(settings: AppSettings) {
+        prefsManager.saveSettings(settings)
+    }
 
     var theme: Int
         get() = prefsManager.theme
@@ -131,4 +174,8 @@ class Repository(context: Context) {
     var premiumType: String
         get() = prefsManager.premiumType
         set(value) { prefsManager.premiumType = value }
+
+    var premiumExpiry: Long
+        get() = prefsManager.premiumExpiry
+        set(value) { prefsManager.premiumExpiry = value }
 }

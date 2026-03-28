@@ -77,44 +77,45 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
         })
     }
 
-    fun getProducts(): List<ProductDetails> {
-        val productList = listOf(
-            Product.newBuilder()
-                .setProductId(SKU_BASIC_MONTHLY)
-                .setProductType(ProductType.SUBS)
-                .build(),
-            Product.newBuilder()
-                .setProductId(SKU_BASIC_FOREVER)
-                .setProductType(ProductType.INAPP)
-                .build(),
-            Product.newBuilder()
-                .setProductId(SKU_GOODPLAN_MONTHLY)
-                .setProductType(ProductType.SUBS)
-                .build(),
-            Product.newBuilder()
-                .setProductId(SKU_GOODPLAN_FOREVER)
-                .setProductType(ProductType.INAPP)
-                .build()
+    fun getSubscriptions(): List<SkuDetails> {
+        val skuList = listOf(
+            SKU_BASIC_MONTHLY,
+            SKU_GOODPLAN_MONTHLY
         )
 
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(productList)
+        val params = SkuDetailsParams.newBuilder()
+            .setSkusList(skuList)
+            .setType(BillingClient.SkuType.SUBS)
             .build()
 
-        var products = listOf<ProductDetails>()
-        billingClient?.queryProductDetailsAsync(params) { _, productDetailsList ->
-            products = productDetailsList
+        var skuDetailsList = listOf<SkuDetails>()
+        billingClient?.querySkuDetailsAsync(params) { _, skuDetails ->
+            skuDetailsList = skuDetails ?: emptyList()
         }
-        return products
+        return skuDetailsList
     }
 
-    fun purchase(activity: Activity, productDetails: ProductDetails) {
-        val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
-            .setProductDetails(productDetails)
+    fun getInAppProducts(): List<SkuDetails> {
+        val skuList = listOf(
+            SKU_BASIC_FOREVER,
+            SKU_GOODPLAN_FOREVER
+        )
+
+        val params = SkuDetailsParams.newBuilder()
+            .setSkusList(skuList)
+            .setType(BillingClient.SkuType.INAPP)
             .build()
 
+        var skuDetailsList = listOf<SkuDetails>()
+        billingClient?.querySkuDetailsAsync(params) { _, skuDetails ->
+            skuDetailsList = skuDetails ?: emptyList()
+        }
+        return skuDetailsList
+    }
+
+    fun purchase(activity: Activity, skuDetails: SkuDetails) {
         val billingFlowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(listOf(productDetailsParams))
+            .setSkuDetails(skuDetails)
             .build()
 
         billingClient?.launchBillingFlow(activity, billingFlowParams)
@@ -144,7 +145,7 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
     private fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
             // Grant premium based on SKU
-            val sku = purchase.products.firstOrNull() ?: ""
+            val sku = purchase.sku
             when (sku) {
                 SKU_BASIC_MONTHLY, SKU_BASIC_FOREVER -> grantPremium("BASIC")
                 SKU_GOODPLAN_MONTHLY, SKU_GOODPLAN_FOREVER -> grantPremium("GOODPLAN")
@@ -173,9 +174,7 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
     }
 
     fun restorePurchases(onRestored: (List<Purchase>) -> Unit) {
-        billingClient?.queryPurchasesAsync(QueryPurchasesParams.newBuilder()
-            .setProductType(ProductType.SUBS)
-            .build()) { _, purchasesList ->
+        billingClient?.queryPurchasesAsync(BillingClient.SkuType.SUBS) { _, purchasesList ->
             purchasesList.forEach { purchase ->
                 if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
                     handlePurchase(purchase)

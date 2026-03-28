@@ -4,9 +4,9 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zchat.app.R
@@ -33,7 +33,6 @@ class ChannelsActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.channels)
 
         setupRecyclerView()
-        setupSearch()
         loadChannels()
 
         binding.fabCreateChannel.setOnClickListener { showCreateChannelDialog() }
@@ -46,12 +45,6 @@ class ChannelsActivity : AppCompatActivity() {
         )
         binding.rvChannels.layoutManager = LinearLayoutManager(this)
         binding.rvChannels.adapter = adapter
-    }
-
-    private fun setupSearch() {
-        binding.etSearch.addTextChangedListener { text ->
-            searchChannels(text?.toString() ?: "")
-        }
     }
 
     private fun loadChannels() {
@@ -73,18 +66,7 @@ class ChannelsActivity : AppCompatActivity() {
         }
     }
 
-    private fun searchChannels(query: String) {
-        lifecycleScope.launch {
-            val result = repository.searchChannels(query)
-            result.fold(
-                onSuccess = { channels -> adapter.submitList(channels) },
-                onFailure = {}
-            )
-        }
-    }
-
     private fun showCreateChannelDialog() {
-        val view = layoutInflater.inflate(android.R.layout.simple_list_item_1, null)
         val nameInput = EditText(this).apply {
             hint = getString(R.string.channel_name)
         }
@@ -92,8 +74,8 @@ class ChannelsActivity : AppCompatActivity() {
             hint = getString(R.string.channel_description)
         }
 
-        val layout = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setPadding(50, 40, 50, 10)
             addView(nameInput)
             addView(descInput)
@@ -102,7 +84,7 @@ class ChannelsActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.create_channel)
             .setView(layout)
-            .setPositiveButton(R.string.create) { _, _ ->
+            .setPositiveButton(android.R.string.ok) { _, _ ->
                 val name = nameInput.text.toString().trim()
                 val desc = descInput.text.toString().trim()
 
@@ -112,7 +94,7 @@ class ChannelsActivity : AppCompatActivity() {
                     Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 

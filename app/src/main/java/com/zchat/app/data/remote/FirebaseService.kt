@@ -2,11 +2,7 @@ package com.zchat.app.data.remote
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.zchat.app.data.model.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +33,6 @@ class FirebaseService {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user!!
-            // Create user profile in database
             val userProfile = User(
                 uid = user.uid,
                 email = email,
@@ -90,7 +85,6 @@ class FirebaseService {
         }
     }
 
-    // Online status
     fun setOnlineStatus(uid: String, isOnline: Boolean) {
         database.child("users").child(uid).child("isOnline").setValue(isOnline)
         database.child("users").child(uid).child("lastSeen").setValue(System.currentTimeMillis())
@@ -100,9 +94,7 @@ class FirebaseService {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(User::class.java)
-                if (user != null) {
-                    trySend(user)
-                }
+                if (user != null) trySend(user)
             }
             override fun onCancelled(error: DatabaseError) {}
         }
@@ -163,7 +155,9 @@ class FirebaseService {
     // Calls
     suspend fun saveCall(call: Call): Result<Unit> {
         return try {
-            database.child("calls").child(currentUserId!!).child(call.id).setValue(call).await()
+            currentUserId?.let { uid ->
+                database.child("calls").child(uid).child(call.id).setValue(call).await()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
