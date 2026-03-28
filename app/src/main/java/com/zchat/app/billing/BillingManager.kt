@@ -83,19 +83,19 @@ class BillingManager(private val context: Context) : PurchasesUpdatedListener {
 
     fun queryAllProducts() {
         val productList = listOf(
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_BASIC_MONTHLY)
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_GOODPLAN_MONTHLY)
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_BASIC_FOREVER)
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build(),
-            Product.newBuilder()
+            QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(SKU_GOODPLAN_FOREVER)
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build()
