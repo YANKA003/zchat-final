@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var repository: Repository
     private lateinit var adapter: UsersAdapter
     private var currentTheme = 0
+    private var isInitialized = false
 
     private val CONTACTS_PERMISSION_REQUEST = 100
 
@@ -56,19 +57,22 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Check if logged in
+        // Check if logged in - with a small delay to let Firebase initialize
         try {
-            if (repository.currentUser == null) {
+            val user = repository.currentUser
+            if (user == null) {
                 Log.d("MainActivity", "No user logged in, going to Auth")
                 goToAuth()
                 return
             }
+            Log.d("MainActivity", "User logged in: ${user.uid}")
         } catch (e: Exception) {
             Log.e("MainActivity", "Error checking user", e)
             goToAuth()
             return
         }
 
+        isInitialized = true
         currentTheme = repository.theme
 
         setupToolbar()

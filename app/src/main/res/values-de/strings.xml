@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GOODOK</string>
+    <string name="app_name">GoodOK</string>
     <string name="chats">Chats</string>
     <string name="calls">Anrufe</string>
     <string name="channels">Kanäle</string>
@@ -100,4 +100,5 @@
     <string name="lang_ukrainian">Українська</string>
     <string name="lang_russian">Русский</string>
     <string name="lang_german">Deutsch</string>
+    <string name="theme_updated">Design und Symbol aktualisiert</string>
 </resources>

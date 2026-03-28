@@ -41,4 +41,10 @@
     <color name="childish_primary">#FF9800</color>
     <color name="childish_secondary">#F57C00</color>
     <color name="childish_background">#FFF8E1</color>
+
+    <!-- Icon background colors -->
+    <color name="ic_launcher_background">#0F172A</color>
+    <color name="ic_launcher_background_dark">#000000</color>
+    <color name="ic_launcher_background_light">#FFFFFF</color>
+    <color name="ic_launcher_background_childish">#FFF3E0</color>
 </resources>

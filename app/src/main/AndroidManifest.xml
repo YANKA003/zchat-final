@@ -24,15 +24,86 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- Main launcher activity (default theme icon) -->
         <activity
             android:name=".ui.auth.AuthActivity"
             android:exported="true"
-            android:theme="@style/Theme_GOODOK">
+            android:theme="@style/Theme_GOODOK" />
+
+        <!-- Default theme icon alias -->
+        <activity-alias
+            android:name=".ui.auth.AuthActivityDefault"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity=".ui.auth.AuthActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <!-- Classic theme icon alias -->
+        <activity-alias
+            android:name=".ui.auth.AuthActivityClassic"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_classic"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_classic"
+            android:targetActivity=".ui.auth.AuthActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Modern theme icon alias -->
+        <activity-alias
+            android:name=".ui.auth.AuthActivityModern"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_modern"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_modern"
+            android:targetActivity=".ui.auth.AuthActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Neon theme icon alias -->
+        <activity-alias
+            android:name=".ui.auth.AuthActivityNeon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_neon"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_neon"
+            android:targetActivity=".ui.auth.AuthActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Childish theme icon alias -->
+        <activity-alias
+            android:name=".ui.auth.AuthActivityChildish"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_childish"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_childish"
+            android:targetActivity=".ui.auth.AuthActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <activity
             android:name=".ui.MainActivity"

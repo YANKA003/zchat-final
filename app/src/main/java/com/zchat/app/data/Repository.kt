@@ -118,7 +118,12 @@ class Repository(context: Context) {
     }
 
     fun observeMessages(userId: String): Flow<List<Message>>? {
-        return currentUserId?.let { firebaseService?.observeMessages(it, userId) }
+        return try {
+            currentUserId?.let { firebaseService?.observeMessages(it, userId) }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error observing messages", e)
+            null
+        }
     }
 
     // Calls
@@ -128,7 +133,12 @@ class Repository(context: Context) {
     }
 
     fun observeCalls(): Flow<List<Call>>? {
-        return currentUserId?.let { firebaseService?.observeCalls(it) }
+        return try {
+            currentUserId?.let { firebaseService?.observeCalls(it) }
+        } catch (e: Exception) {
+            Log.e("Repository", "Error observing calls", e)
+            null
+        }
     }
 
     suspend fun getLocalCalls(): List<Call> {

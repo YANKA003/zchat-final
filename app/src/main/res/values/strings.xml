@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">GOODOK</string>
+    <string name="app_name">GoodOK</string>
 
     <!-- Navigation -->
     <string name="chats">Chats</string>
@@ -110,6 +110,7 @@
     <string name="description">Description</string>
     <string name="enter_channel_name">Enter channel name</string>
     <string name="enter_description">Enter description</string>
+    <string name="theme_updated">Theme and icon updated</string>
 
     <!-- Languages -->
     <string name="lang_en">English (US)</string>

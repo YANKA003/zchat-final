@@ -20,6 +20,7 @@ import com.zchat.app.databinding.ActivitySettingsBinding
 import com.zchat.app.ui.auth.AuthActivity
 import com.zchat.app.ui.premium.PremiumActivity
 import com.zchat.app.util.LanguageHelper
+import com.zchat.app.util.IconHelper
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
@@ -199,6 +200,9 @@ class SettingsActivity : AppCompatActivity() {
                     return
                 }
                 repository.theme = position
+                // Update app icon based on theme
+                IconHelper.updateIcon(this@SettingsActivity, position)
+                Toast.makeText(this@SettingsActivity, R.string.theme_updated, Toast.LENGTH_SHORT).show()
                 recreate()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
