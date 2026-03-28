@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.android.billingclient.api.BillingClient
 import com.zchat.app.R
 import com.zchat.app.billing.BillingManager
 import com.zchat.app.data.Repository
@@ -34,14 +35,16 @@ class PremiumActivity : AppCompatActivity() {
 
     private fun setupBilling() {
         billingManager.startConnection {
-            // Billing client connected
+            // Query products after connection
+            billingManager.queryAllProducts()
+
             lifecycleScope.launch {
                 billingManager.purchaseState.collect { state ->
                     when (state) {
                         is BillingManager.PurchaseState.Success -> {
                             Toast.makeText(
                                 this@PremiumActivity,
-                                "${getString(R.string.success)}! ${state.sku}",
+                                "${getString(R.string.success)}! ${state.productId}",
                                 Toast.LENGTH_LONG
                             ).show()
                             updatePremiumStatus()
@@ -110,17 +113,22 @@ class PremiumActivity : AppCompatActivity() {
         }
     }
 
-    private fun purchasePlan(sku: String) {
-        val products = billingManager.getProducts()
-        val product = products.find { it.productId == sku }
+    private fun purchasePlan(productId: String) {
+        val productDetails = billingManager.getProductDetails(productId)
 
-        if (product != null) {
-            billingManager.purchase(this, product)
+        if (productDetails != null) {
+            // Get offer token for subscriptions
+            val offerToken = if (productDetails.productType == BillingClient.ProductType.SUBS) {
+                productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
+            } else {
+                null
+            }
+            billingManager.purchase(this, productDetails, offerToken)
         } else {
             // Product not found in Play Console - show demo purchase
             Toast.makeText(this, "Demo mode: Product not configured in Play Console", Toast.LENGTH_LONG).show()
             // For testing: grant premium manually
-            val type = if (sku.contains("goodplan", ignoreCase = true)) "GOODPLAN" else "BASIC"
+            val type = if (productId.contains("goodplan", ignoreCase = true)) "GOODPLAN" else "BASIC"
             repository.isPremium = true
             repository.premiumType = type
             updatePremiumStatus()
